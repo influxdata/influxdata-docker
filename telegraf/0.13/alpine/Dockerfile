@@ -1,4 +1,4 @@
-FROM alpine:3.3
+FROM alpine:3.4
 
 ENV TELEGRAF_VERSION 0.13.0
 RUN apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
