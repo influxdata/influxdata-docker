@@ -2,6 +2,11 @@
 
 set -e
 
+dir=.
+if [ $# -gt 0 ]; then
+  dir=("$@")
+fi
+
 log_msg() {
   echo "[$(date "+%Y/%m/%d %H:%M:%S %z")] $@"
 }
@@ -20,9 +25,12 @@ docker version
 
 failed_builds=()
 
-dockerfiles=$(find . -name Dockerfile -print0 | xargs -0 -I{} dirname {} | sed 's@./@@')
+# Gather directories with a Dockerfile and sanitize the path to remove leading
+# a leading ./ and multiple slashes into a single slash.
+dockerfiles=$(find "$dir" -name Dockerfile -print0 | xargs -0 -I{} dirname {} | sed 's@^./@@' | sed 's@//*@/@g')
 for path in $dockerfiles; do
-  tag=$(echo $path | sed 's@/@:@' | sed 's@/@-@')
+  # Generate a tag by replacing the first slash with a colon and all remaining slashes with a dash.
+  tag=$(echo $path | sed 's@/@:@' | sed 's@/@-@g')
   log_msg "Building docker image $tag (from $path)"
   if ! docker_build -t "$tag" "$path"; then
     failed_builds+=("$tag")
