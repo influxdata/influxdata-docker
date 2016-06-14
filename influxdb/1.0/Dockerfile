@@ -12,7 +12,7 @@ RUN wget -q https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERS
     rm -f influxdb_${INFLUXDB_VERSION}_amd64.deb*
 COPY influxdb.conf /etc/influxdb/influxdb.conf
 
-EXPOSE 8083 8086
+EXPOSE 8086
 
 VOLUME /var/lib/influxdb
 
