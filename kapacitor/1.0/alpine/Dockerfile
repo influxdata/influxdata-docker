@@ -1,6 +1,6 @@
 FROM alpine:3.4
 
-ENV KAPACITOR_VERSION 1.0.0~beta3
+ENV KAPACITOR_VERSION 1.0.0~rc1
 RUN apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     update-ca-certificates && \
     gpg --keyserver hkp://ha.pool.sks-keyservers.net \
