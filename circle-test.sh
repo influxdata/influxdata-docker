@@ -14,9 +14,9 @@ log_msg() {
 docker_build() {
   # CircleCI cannot build docker images with --rm=true correctly.
   if [ -z "$CIRCLE_BUILD_NUM" ]; then
-    docker build --rm=false "$@"
-  else
     docker build --rm=true "$@"
+  else
+    docker build --no-cache --rm=false "$@"
   fi
 }
 
@@ -27,7 +27,7 @@ failed_builds=()
 
 # Gather directories with a Dockerfile and sanitize the path to remove leading
 # a leading ./ and multiple slashes into a single slash.
-dockerfiles=$(find "$dir" -name Dockerfile -print0 | xargs -0 -I{} dirname {} | sed 's@^./@@' | sed 's@//*@/@g')
+dockerfiles=$(find "$dir" -name nightly -prune -o -name Dockerfile -print0 | xargs -0 -I{} dirname {} | sed 's@^./@@' | sed 's@//*@/@g')
 for path in $dockerfiles; do
   # Generate a tag by replacing the first slash with a colon and all remaining slashes with a dash.
   tag=$(echo $path | sed 's@/@:@' | sed 's@/@-@g')
@@ -44,4 +44,5 @@ else
   for tag in ${failed_builds[@]}; do
     echo "	$tag"
   done
+  exit ${#failed_builds[@]}
 fi
