@@ -11,6 +11,7 @@ RUN wget -q https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERS
     dpkg -i influxdb_${INFLUXDB_VERSION}_amd64.deb && \
     rm -f influxdb_${INFLUXDB_VERSION}_amd64.deb*
 COPY influxdb.conf /etc/influxdb/influxdb.conf
+COPY influxdb.pem /etc/ssl/influxdb.pem
 
 EXPOSE 8086
 
