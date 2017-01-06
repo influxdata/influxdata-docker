@@ -1,4 +1,4 @@
-FROM alpine:3.4
+FROM alpine:3.5
 
 ENV KAPACITOR_VERSION 1.1.1
 RUN apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
