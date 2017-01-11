@@ -1,6 +1,6 @@
 FROM alpine:3.4
 
-ENV KAPACITOR_VERSION 0.13.1
+ENV KAPACITOR_VERSION 1.2.0~rc1
 RUN apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     update-ca-certificates && \
     gpg --keyserver hkp://ha.pool.sks-keyservers.net \
@@ -15,6 +15,7 @@ RUN apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     cp -a /usr/src/kapacitor-*/* /usr/bin/ && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
     apk del .build-deps
+COPY kapacitor.conf /etc/kapacitor/kapacitor.conf
 
 EXPOSE 9092
 
