@@ -1,6 +1,6 @@
-FROM alpine:3.4
+FROM alpine:3.5
 
-ENV INFLUXDB_VERSION 0.13.0
+ENV INFLUXDB_VERSION 1.2.0~rc1
 RUN apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     update-ca-certificates && \
     gpg --keyserver hkp://ha.pool.sks-keyservers.net \
@@ -17,7 +17,7 @@ RUN apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     apk del .build-deps
 COPY influxdb.conf /etc/influxdb/influxdb.conf
 
-EXPOSE 8083 8086
+EXPOSE 8086
 
 VOLUME /var/lib/influxdb
 
