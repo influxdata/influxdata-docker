@@ -1,4 +1,4 @@
-FROM alpine:3.4
+FROM alpine:3.5
 
 ENV TELEGRAF_VERSION 1.1.2
 
