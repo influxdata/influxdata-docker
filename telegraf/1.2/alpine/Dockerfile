@@ -1,6 +1,6 @@
 FROM alpine:3.5
 
-ENV TELEGRAF_VERSION 1.2.0
+ENV TELEGRAF_VERSION 1.2.1
 
 RUN apk add --no-cache ca-certificates && \
     update-ca-certificates
