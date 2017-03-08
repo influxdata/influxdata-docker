@@ -1,6 +1,6 @@
 FROM alpine:3.5
 
-ENV INFLUXDB_VERSION 1.2.0
+ENV INFLUXDB_VERSION 1.2.1
 RUN apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     update-ca-certificates && \
     gpg --keyserver hkp://ha.pool.sks-keyservers.net \
