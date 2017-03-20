@@ -119,7 +119,10 @@ func DockerfileVersion(dir string) (*Version, error) {
 		if len(parts) != 3 || !strings.HasSuffix(parts[1], "_VERSION") {
 			continue
 		}
-		return NewVersion(parts[2])
+
+		// Split the version on a dash.
+		sections := strings.Split(parts[2], "-")
+		return NewVersion(sections[0])
 	}
 	return nil, nil
 }
