@@ -1,9 +1,9 @@
 FROM alpine:3.5
 
-ENV TELEGRAF_VERSION 1.1.2
-
 RUN apk add --no-cache iputils ca-certificates && \
     update-ca-certificates
+
+ENV TELEGRAF_VERSION 1.1.2
 
 RUN apk add --no-cache --virtual .build-deps wget gnupg tar && \
     gpg --keyserver hkp://ha.pool.sks-keyservers.net \
