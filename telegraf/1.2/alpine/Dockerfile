@@ -1,5 +1,6 @@
 FROM alpine:3.5
 
+RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache iputils ca-certificates && \
     update-ca-certificates
 
