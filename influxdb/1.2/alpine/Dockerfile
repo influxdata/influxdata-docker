@@ -2,7 +2,7 @@ FROM alpine:3.5
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 
-ENV INFLUXDB_VERSION 1.2.2
+ENV INFLUXDB_VERSION 1.2.3
 RUN apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     update-ca-certificates && \
     gpg --keyserver hkp://ha.pool.sks-keyservers.net \
