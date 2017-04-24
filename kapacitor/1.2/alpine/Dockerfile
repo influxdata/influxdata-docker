@@ -4,7 +4,7 @@ RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache ca-certificates && \
     update-ca-certificates
 
-ENV KAPACITOR_VERSION 1.2.0
+ENV KAPACITOR_VERSION 1.2.1
 
 RUN apk add --no-cache --virtual .build-deps wget gnupg tar && \
     gpg --keyserver hkp://ha.pool.sks-keyservers.net \
