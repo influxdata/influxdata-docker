@@ -1,8 +1,13 @@
 FROM buildpack-deps:jessie-curl
 
-RUN gpg \
-    --keyserver hkp://ha.pool.sks-keyservers.net \
-    --recv-keys 05CE15085FC09D18E99EFB22684A14CF2582E0C5
+RUN set -ex && \
+    for key in \
+        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
+    do \
+        gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" || \
+        gpg --keyserver pgp.mit.edu --recv-keys "$key" || \
+        gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
+    done
 
 RUN wget -q https://dl.influxdata.com/influxdb/nightlies/influxdb_nightly_amd64.deb.asc && \
     wget -q https://dl.influxdata.com/influxdb/nightlies/influxdb_nightly_amd64.deb && \
