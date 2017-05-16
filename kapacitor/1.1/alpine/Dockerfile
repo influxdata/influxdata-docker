@@ -6,9 +6,15 @@ RUN apk add --no-cache ca-certificates && \
 
 ENV KAPACITOR_VERSION 1.1.1
 
-RUN apk add --no-cache --virtual .build-deps wget gnupg tar && \
-    gpg --keyserver hkp://ha.pool.sks-keyservers.net \
-        --recv-keys 05CE15085FC09D18E99EFB22684A14CF2582E0C5 && \
+RUN set -ex && \
+    apk add --no-cache --virtual .build-deps wget gnupg tar && \
+    for key in \
+        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
+    do \
+        gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" || \
+        gpg --keyserver pgp.mit.edu --recv-keys "$key" || \
+        gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
+    done && \
     wget -q https://dl.influxdata.com/kapacitor/releases/kapacitor-${KAPACITOR_VERSION}-static_linux_amd64.tar.gz.asc && \
     wget -q https://dl.influxdata.com/kapacitor/releases/kapacitor-${KAPACITOR_VERSION}-static_linux_amd64.tar.gz && \
     gpg --batch --verify kapacitor-${KAPACITOR_VERSION}-static_linux_amd64.tar.gz.asc kapacitor-${KAPACITOR_VERSION}-static_linux_amd64.tar.gz && \
