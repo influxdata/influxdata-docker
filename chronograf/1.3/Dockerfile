@@ -1,4 +1,4 @@
-FROM buildpack-deps:jessie-curl
+FROM debian:jessie-slim
 
 RUN set -ex && \
     for key in \
@@ -10,11 +10,16 @@ RUN set -ex && \
     done
 
 ENV CHRONOGRAF_VERSION 1.3.0
-RUN wget -q https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_amd64.deb.asc && \
-    wget -q https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_amd64.deb && \
+RUN buildDeps='curl' \
+    set -x && \
+    apt-get update && apt-get install -y ca-certificates $buildDeps --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/* && \
+    curl -SLO "https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_amd64.deb.asc" && \
+    curl -SLO "https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_amd64.deb" && \
     gpg --batch --verify chronograf_${CHRONOGRAF_VERSION}_amd64.deb.asc chronograf_${CHRONOGRAF_VERSION}_amd64.deb && \
     dpkg -i chronograf_${CHRONOGRAF_VERSION}_amd64.deb && \
-    rm -f chronograf_${CHRONOGRAF_VERSION}_amd64.deb*
+    rm -f chronograf_${CHRONOGRAF_VERSION}_amd64.deb* && \
+    apt-get purge -y --auto-remove $buildDeps
 
 COPY LICENSE /usr/share/chronograf/LICENSE
 COPY agpl-3.0.md /usr/share/chronograf/agpl-3.0.md
