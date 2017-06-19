@@ -10,19 +10,17 @@ AUTH_ENABLED="$INFLUXDB_HTTP_AUTH_ENABLED"
 if [ -z "$AUTH_ENABLED" ]; then
 	AUTH_ENABLED="$(grep -iE '^\s*auth-enabled\s*=\s*true' /etc/influxdb/influxdb.conf | grep -io 'true' | cat)"
 else
-	AUTH_ENABLED=$(echo "$INFLUXDB_HTTP_AUTH_ENABLED" | grep -io 'true' | cat)
+	AUTH_ENABLED="$(echo ""$INFLUXDB_HTTP_AUTH_ENABLED"" | grep -io 'true' | cat)"
 fi
 
-if ( [ ! -z "$AUTH_ENABLED" ] || [ ! -z "$INFLUXDB_DB" ] ) && [ ! "$(ls -A /var/lib/influxdb)" ]; then
+INIT_USERS=$([ ! -z "$AUTH_ENABLED" ] && [ ! -z "$INFLUXDB_ADMIN_USER" ] && echo 1 || echo)
+
+if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] ) && [ ! "$(ls -A /var/lib/influxdb)" ]; then
 
 	INIT_QUERY=""
 	CREATE_DB_QUERY="q=CREATE DATABASE $INFLUXDB_DB"
 
-	if [ ! -z "$AUTH_ENABLED" ]; then
-
-		if [ -z "$INFLUXDB_ADMIN_USER" ]; then
-			INFLUXDB_ADMIN_USER="admin"
-		fi
+	if [ ! -z "$INIT_USERS" ]; then
 
 		if [ -z "$INFLUXDB_ADMIN_PASSWORD" ]; then
 			INFLUXDB_ADMIN_PASSWORD="$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c32;echo;)"
@@ -50,7 +48,7 @@ if ( [ ! -z "$AUTH_ENABLED" ] || [ ! -z "$INFLUXDB_DB" ] ) && [ ! "$(ls -A /var/
 		exit 1
 	fi
 
-	if [ ! -z "$AUTH_ENABLED" ]; then
+	if [ ! -z "$INIT_USERS" ]; then
 
 		CURL_CMD="curl -i -XPOST http://127.0.0.1:8086/query -u${INFLUXDB_ADMIN_USER}:${INFLUXDB_ADMIN_PASSWORD} --data-urlencode "
 
