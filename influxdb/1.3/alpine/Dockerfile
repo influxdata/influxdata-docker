@@ -1,7 +1,7 @@
 FROM alpine:3.5
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata bash
 
 ENV INFLUXDB_VERSION 1.3.5
 RUN set -ex && \
@@ -31,5 +31,6 @@ EXPOSE 8086
 VOLUME /var/lib/influxdb
 
 COPY entrypoint.sh /entrypoint.sh
+COPY init-influxdb.sh /init-influxdb.sh
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["influxd"]
