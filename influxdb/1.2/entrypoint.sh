@@ -15,7 +15,7 @@ fi
 
 INIT_USERS=$([ ! -z "$AUTH_ENABLED" ] && [ ! -z "$INFLUXDB_ADMIN_USER" ] && echo 1 || echo)
 
-if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] ) && [ ! "$(ls -A /var/lib/influxdb)" ]; then
+if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-entrypoint-initdb.d 2> /dev/null)" ] ) && [ ! "$(ls -A /var/lib/influxdb)" ]; then
 
 	INIT_QUERY=""
 	CREATE_DB_QUERY="q=CREATE DATABASE $INFLUXDB_DB"
@@ -30,6 +30,8 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] ) && [ ! "$(ls -A /var/li
 		INIT_QUERY="q=CREATE USER $INFLUXDB_ADMIN_USER WITH PASSWORD '$INFLUXDB_ADMIN_PASSWORD' WITH ALL PRIVILEGES"
 	elif [ ! -z "$INFLUXDB_DB" ]; then
 		INIT_QUERY="$CREATE_DB_QUERY"
+	else
+		INIT_QUERY="q=SHOW DATABASES"
 	fi
 
 	"$@" &
@@ -47,6 +49,8 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] ) && [ ! "$(ls -A /var/li
 		echo >&2 'influxdb init process failed.'
 		exit 1
 	fi
+
+	CURL_CMD="curl -i -XPOST http://127.0.0.1:8086/query --data-urlencode "
 
 	if [ ! -z "$INIT_USERS" ]; then
 
@@ -101,6 +105,15 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] ) && [ ! "$(ls -A /var/li
 		fi
 
 	fi
+
+	for f in /docker-entrypoint-initdb.d/*; do
+		case "$f" in
+			*.sh)     echo "$0: running $f"; . "$f" ;;
+			*.iql)    echo "$0: running $f"; $CURL_CMD "q=$(cat ""$f"")"; echo ;;
+			*)        echo "$0: ignoring $f" ;;
+		esac
+		echo
+	done
 
 	if ! kill -s TERM "$pid" || ! wait "$pid"; then
 		echo >&2 'influxdb init process failed. (Could not stop influxdb)'
