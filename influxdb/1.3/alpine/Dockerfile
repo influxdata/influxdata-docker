@@ -2,7 +2,7 @@ FROM alpine:3.5
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 
-ENV INFLUXDB_VERSION 1.1.5
+ENV INFLUXDB_VERSION 1.3.0
 RUN set -ex && \
     apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     update-ca-certificates && \
