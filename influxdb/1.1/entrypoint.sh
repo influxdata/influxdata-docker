@@ -71,8 +71,7 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-ent
 			$CURL_CMD "q=REVOKE ALL PRIVILEGES FROM ""$INFLUXDB_USER"""
 
 			if [ ! -z "$INFLUXDB_DB" ]; then
-				$CURL_CMD "q=GRANT READ ON ""$INFLUXDB_DB"" TO ""$INFLUXDB_USER"""
-				$CURL_CMD "q=GRANT WRITE ON ""$INFLUXDB_DB"" TO ""$INFLUXDB_USER"""
+				$CURL_CMD "q=GRANT ALL ON ""$INFLUXDB_DB"" TO ""$INFLUXDB_USER"""
 			fi
 		fi
 
