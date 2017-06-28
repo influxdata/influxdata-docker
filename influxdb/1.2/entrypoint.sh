@@ -105,7 +105,7 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-ent
 
 	fi
 
-	CURL_WRITE_CMD="curl -i -XPOST "http://127.0.0.1:8086/write?db=${INFLUXDB_DB}" -u${INFLUXDB_ADMIN_USER}:${INFLUXDB_ADMIN_PASSWORD} --data-binary "
+	CURL_WRITE_CMD="curl -i -XPOST ""http://127.0.0.1:8086/write?db=${INFLUXDB_DB}"" -u${INFLUXDB_ADMIN_USER}:${INFLUXDB_ADMIN_PASSWORD} --data-binary "
 
 	for f in /docker-entrypoint-initdb.d/*; do
 		case "$f" in
