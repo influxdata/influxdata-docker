@@ -1,5 +1,9 @@
 FROM buildpack-deps:trusty-curl
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends snmp && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN set -ex && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
