@@ -1,6 +1,7 @@
 FROM alpine:3.5
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
+RUN apk add --no-cache tzdata
 
 ENV INFLUXDB_VERSION 1.3.0
 RUN set -ex && \
