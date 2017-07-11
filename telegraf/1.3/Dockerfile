@@ -1,7 +1,7 @@
 FROM buildpack-deps:trusty-curl
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends snmp && \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends snmp && \
     rm -rf /var/lib/apt/lists/*
 
 RUN set -ex && \
