@@ -1,11 +1,11 @@
 FROM alpine:3.5
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
+RUN apk add --no-cache tzdata
 
 ENV INFLUXDB_VERSION 1.3.0
 RUN set -ex && \
     apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
-    apk add --no-cache tzdata && \
     update-ca-certificates && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
