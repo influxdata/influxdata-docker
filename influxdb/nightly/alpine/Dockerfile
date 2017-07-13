@@ -1,5 +1,7 @@
 FROM alpine:3.5
 
+RUN apk add --no-cache curl bash
+
 RUN set -ex && \
     apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     update-ca-certificates && \
