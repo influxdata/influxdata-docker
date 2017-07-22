@@ -2,7 +2,7 @@ FROM alpine:3.5
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 
-RUN apk add --no-cache curl bash
+RUN apk add --no-cache bash
 
 ENV INFLUXDB_VERSION 1.2.4
 RUN set -ex && \

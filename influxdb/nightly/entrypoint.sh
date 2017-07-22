@@ -18,7 +18,7 @@ INIT_USERS=$([ ! -z "$AUTH_ENABLED" ] && [ ! -z "$INFLUXDB_ADMIN_USER" ] && echo
 if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-entrypoint-initdb.d 2> /dev/null)" ] ) && [ ! "$(ls -A /var/lib/influxdb)" ]; then
 
 	INIT_QUERY=""
-	CREATE_DB_QUERY="q=CREATE DATABASE $INFLUXDB_DB"
+	CREATE_DB_QUERY="CREATE DATABASE $INFLUXDB_DB"
 
 	if [ ! -z "$INIT_USERS" ]; then
 
@@ -27,18 +27,20 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-ent
 			echo "INFLUXDB_ADMIN_PASSWORD:$INFLUXDB_ADMIN_PASSWORD"
 		fi
 
-		INIT_QUERY="q=CREATE USER $INFLUXDB_ADMIN_USER WITH PASSWORD '$INFLUXDB_ADMIN_PASSWORD' WITH ALL PRIVILEGES"
+		INIT_QUERY="CREATE USER $INFLUXDB_ADMIN_USER WITH PASSWORD '$INFLUXDB_ADMIN_PASSWORD' WITH ALL PRIVILEGES"
 	elif [ ! -z "$INFLUXDB_DB" ]; then
 		INIT_QUERY="$CREATE_DB_QUERY"
 	else
-		INIT_QUERY="q=SHOW DATABASES"
+		INIT_QUERY="SHOW DATABASES"
 	fi
 
 	"$@" &
 	pid="$!"
 
+	INFLUX_CMD="influx -host 127.0.0.1 -port 8086 -execute "
+
 	for i in {30..0}; do
-		if curl -i -XPOST http://127.0.0.1:8086/query --data-urlencode "$INIT_QUERY"; then
+		if $INFLUX_CMD "$INIT_QUERY" &> /dev/null; then
 			break
 		fi
 		echo 'influxdb init process in progress...'
@@ -50,14 +52,12 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-ent
 		exit 1
 	fi
 
-	CURL_CMD="curl -i -XPOST http://127.0.0.1:8086/query --data-urlencode "
-
 	if [ ! -z "$INIT_USERS" ]; then
 
-		CURL_CMD="curl -i -XPOST http://127.0.0.1:8086/query -u${INFLUXDB_ADMIN_USER}:${INFLUXDB_ADMIN_PASSWORD} --data-urlencode "
+		INFLUX_CMD="influx -host 127.0.0.1 -port 8086 -username ${INFLUXDB_ADMIN_USER} -password ${INFLUXDB_ADMIN_PASSWORD} -execute "
 
 		if [ ! -z "$INFLUXDB_DB" ]; then
-			$CURL_CMD "$CREATE_DB_QUERY"
+			$INFLUX_CMD "$CREATE_DB_QUERY"
 		fi
 
 		if [ ! -z "$INFLUXDB_USER" ] && [ -z "$INFLUXDB_USER_PASSWORD" ]; then
@@ -66,12 +66,12 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-ent
 		fi
 
 		if [ ! -z "$INFLUXDB_USER" ]; then
-			$CURL_CMD "q=CREATE USER $INFLUXDB_USER WITH PASSWORD '$INFLUXDB_USER_PASSWORD'"
+			$INFLUX_CMD "CREATE USER $INFLUXDB_USER WITH PASSWORD '$INFLUXDB_USER_PASSWORD'"
 
-			$CURL_CMD "q=REVOKE ALL PRIVILEGES FROM ""$INFLUXDB_USER"""
+			$INFLUX_CMD "REVOKE ALL PRIVILEGES FROM ""$INFLUXDB_USER"""
 
 			if [ ! -z "$INFLUXDB_DB" ]; then
-				$CURL_CMD "q=GRANT ALL ON ""$INFLUXDB_DB"" TO ""$INFLUXDB_USER"""
+				$INFLUX_CMD "GRANT ALL ON ""$INFLUXDB_DB"" TO ""$INFLUXDB_USER"""
 			fi
 		fi
 
@@ -81,11 +81,11 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-ent
 		fi
 
 		if [ ! -z "$INFLUXDB_WRITE_USER" ]; then
-			$CURL_CMD "q=CREATE USER $INFLUXDB_WRITE_USER WITH PASSWORD '$INFLUXDB_WRITE_USER_PASSWORD'"
-			$CURL_CMD "q=REVOKE ALL PRIVILEGES FROM ""$INFLUXDB_WRITE_USER"""
+			$INFLUX_CMD "CREATE USER $INFLUXDB_WRITE_USER WITH PASSWORD '$INFLUXDB_WRITE_USER_PASSWORD'"
+			$INFLUX_CMD "REVOKE ALL PRIVILEGES FROM ""$INFLUXDB_WRITE_USER"""
 
 			if [ ! -z "$INFLUXDB_DB" ]; then
-				$CURL_CMD "q=GRANT WRITE ON ""$INFLUXDB_DB"" TO ""$INFLUXDB_WRITE_USER"""
+				$INFLUX_CMD "GRANT WRITE ON ""$INFLUXDB_DB"" TO ""$INFLUXDB_WRITE_USER"""
 			fi
 		fi
 
@@ -95,22 +95,20 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-ent
 		fi
 
 		if [ ! -z "$INFLUXDB_READ_USER" ]; then
-			$CURL_CMD "q=CREATE USER $INFLUXDB_READ_USER WITH PASSWORD '$INFLUXDB_READ_USER_PASSWORD'"
-			$CURL_CMD "q=REVOKE ALL PRIVILEGES FROM ""$INFLUXDB_READ_USER"""
+			$INFLUX_CMD "CREATE USER $INFLUXDB_READ_USER WITH PASSWORD '$INFLUXDB_READ_USER_PASSWORD'"
+			$INFLUX_CMD "REVOKE ALL PRIVILEGES FROM ""$INFLUXDB_READ_USER"""
 
 			if [ ! -z "$INFLUXDB_DB" ]; then
-				$CURL_CMD "q=GRANT READ ON ""$INFLUXDB_DB"" TO ""$INFLUXDB_READ_USER"""
+				$INFLUX_CMD "GRANT READ ON ""$INFLUXDB_DB"" TO ""$INFLUXDB_READ_USER"""
 			fi
 		fi
 
 	fi
 
-	CURL_WRITE_CMD="curl -i -XPOST ""http://127.0.0.1:8086/write?db=${INFLUXDB_DB}"" -u${INFLUXDB_ADMIN_USER}:${INFLUXDB_ADMIN_PASSWORD} --data-binary "
-
 	for f in /docker-entrypoint-initdb.d/*; do
 		case "$f" in
 			*.sh)     echo "$0: running $f"; . "$f" ;;
-			*.iql)    echo "$0: running $f"; $CURL_CMD "q=$(cat ""$f"")"; echo ;;
+			*.iql)    echo "$0: running $f"; $INFLUX_CMD "$(cat ""$f"")"; echo ;;
 			*)        echo "$0: ignoring $f" ;;
 		esac
 		echo
