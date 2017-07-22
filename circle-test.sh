@@ -24,6 +24,7 @@ log_msg "Verifying docker daemon connectivity"
 docker version
 
 failed_builds=()
+tags=()
 
 # Gather directories with a Dockerfile and sanitize the path to remove leading
 # a leading ./ and multiple slashes into a single slash.
@@ -34,6 +35,8 @@ for path in $dockerfiles; do
   log_msg "Building docker image $tag (from $path)"
   if ! docker_build -t "$tag" "$path"; then
     failed_builds+=("$tag")
+  else
+    tags+=("$tag")
   fi
 done
 
@@ -46,3 +49,47 @@ else
   done
   exit ${#failed_builds[@]}
 fi
+
+# Image tests:
+
+assert_equals() {
+  local actual=$1
+  local expected=$2
+  local test_name=$3
+
+  if [ "$actual" != "$expected" ]; then
+    msg="$test_name: '$actual' is not equal to '$expected'"
+    failed_tests+=("$msg")
+  fi
+}
+
+assert_contains() {
+  local actual="$1"
+  local expected_substring="$2"
+  local test_name="$3"
+
+  if [[ "$actual" != *"$expected_substring"* ]]; then
+    msg="$test_name: '$actual' does not contain '$expected_substring'"
+    failed_tests+=("$msg")
+  fi
+}
+
+failed_tests=()
+
+# Iterate over every circle-test.sh script in any subdirectory
+circle_tests=$(find "$dir" -mindepth 2 -name circle-test.sh -print0)
+for path in $circle_tests; do
+  log_msg "Executing $path"
+  . $path
+done
+
+if [ ${#failed_tests[@]} -eq 0 ]; then
+  log_msg "All tests succeeded."
+else
+  log_msg "The following tests failed:"
+  for ((i = 0; i < ${#failed_tests[@]}; i++)); do
+    echo "  ${failed_tests[$i]}"
+  done
+  exit ${#failed_tests[@]}
+fi
+
