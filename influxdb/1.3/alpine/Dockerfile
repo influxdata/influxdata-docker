@@ -32,5 +32,6 @@ EXPOSE 8086
 VOLUME /var/lib/influxdb
 
 COPY entrypoint.sh /entrypoint.sh
+COPY init-influxdb.sh /
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["influxd"]
