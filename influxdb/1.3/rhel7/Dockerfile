@@ -38,10 +38,11 @@ ENV INFLUXDB_ROOT=/opt/influxdb \
 ENV INFLUXDB_HOME=${INFLUXDB_ROOT}/src  PATH=$PATH:${INFLUXDB_ROOT}/bin
 RUN mkdir -p ${INFLUXDB_HOME}
 COPY bin/ ${INFLUXDB_ROOT}/bin/
-# RUN chmod -R ug+x ${INFLUXDB_ROOT}/bin && sync && \
-#     useradd -l -u ${USER_UID} -r -g 0 -d ${INFLUXDB_ROOT} -s /sbin/nologin -c "${USER_NAME} user" ${USER_NAME} && \
-#     chown -R ${USER_UID}:0 ${INFLUXDB_ROOT} && \
-#     chmod -R g=u ${INFLUXDB_ROOT}
+RUN chmod -R ug+x ${INFLUXDB_ROOT}/bin && sync && \
+    useradd -l -u ${USER_UID} -r -g 0 -d ${INFLUXDB_ROOT} -s /sbin/nologin -c "${USER_NAME} user" ${USER_NAME} && \
+    chown -R ${USER_UID}:0 ${INFLUXDB_ROOT} && \
+    chmod -R g=u ${INFLUXDB_ROOT}
+
 
 ####### Add app-specific needs below. #######
 ### Containers should NOT run as root as a good practice
