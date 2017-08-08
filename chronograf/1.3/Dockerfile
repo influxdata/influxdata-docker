@@ -9,7 +9,7 @@ RUN set -ex && \
         gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
     done
 
-ENV CHRONOGRAF_VERSION 1.3.5.0
+ENV CHRONOGRAF_VERSION 1.3.6.0
 RUN buildDeps='curl' \
     set -x && \
     apt-get update && apt-get install -y ca-certificates $buildDeps --no-install-recommends && \
