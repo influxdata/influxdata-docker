@@ -9,11 +9,17 @@ RUN set -ex && \
         gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
     done
 
-RUN wget -q https://dl.influxdata.com/influxdb/nightlies/influxdb_nightly_amd64.deb.asc && \
-    wget -q https://dl.influxdata.com/influxdb/nightlies/influxdb_nightly_amd64.deb && \
-    gpg --batch --verify influxdb_nightly_amd64.deb.asc influxdb_nightly_amd64.deb && \
-    dpkg -i influxdb_nightly_amd64.deb && \
-    rm -f influxdb_nightly_amd64.deb*
+RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
+        && case "${dpkgArch##*-}" in \
+        amd64) ARCH='amd64';; \
+        arm64) ARCH='arm64';; \
+        *) echo "unsupported architecture"; exit 1 ;; \
+    esac && \
+    wget -q https://dl.influxdata.com/influxdb/nightlies/influxdb_nightly_$ARCH.deb.asc && \
+    wget -q https://dl.influxdata.com/influxdb/nightlies/influxdb_nightly_$ARCH.deb && \
+    gpg --batch --verify influxdb_nightly_$ARCH.deb.asc influxdb_nightly_$ARCH.deb && \
+    dpkg -i influxdb_nightly_$ARCH.deb && \
+    rm -f influxdb_nightly_$ARCH.deb*
 COPY influxdb.conf /etc/influxdb/influxdb.conf
 
 EXPOSE 8083 8086

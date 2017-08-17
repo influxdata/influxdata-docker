@@ -10,11 +10,17 @@ RUN set -ex && \
     done
 
 ENV INFLUXDB_VERSION 1.2.4
-RUN wget -q https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION}_amd64.deb.asc && \
-    wget -q https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION}_amd64.deb && \
-    gpg --batch --verify influxdb_${INFLUXDB_VERSION}_amd64.deb.asc influxdb_${INFLUXDB_VERSION}_amd64.deb && \
-    dpkg -i influxdb_${INFLUXDB_VERSION}_amd64.deb && \
-    rm -f influxdb_${INFLUXDB_VERSION}_amd64.deb*
+RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
+       && case "${dpkgArch##*-}" in \
+       amd64) ARCH='amd64';; \
+       arm64) ARCH='arm64';; \
+       *) echo "unsupported architecture"; exit 1 ;; \
+    esac && \
+    wget -q https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION}_$ARCH.deb.asc && \
+    wget -q https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION}_$ARCH.deb && \
+    gpg --batch --verify influxdb_${INFLUXDB_VERSION}_$ARCH.deb.asc influxdb_${INFLUXDB_VERSION}_$ARCH.deb && \
+    dpkg -i influxdb_${INFLUXDB_VERSION}_$ARCH.deb && \
+    rm -f influxdb_${INFLUXDB_VERSION}_$ARCH.deb*
 COPY influxdb.conf /etc/influxdb/influxdb.conf
 
 EXPOSE 8086
