@@ -21,7 +21,7 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
     gpg --batch --verify influxdb_${INFLUXDB_VERSION}_$ARCH.deb.asc influxdb_${INFLUXDB_VERSION}_$ARCH.deb && \
     dpkg -i influxdb_${INFLUXDB_VERSION}_$ARCH.deb && \
     rm -f influxdb_${INFLUXDB_VERSION}_$ARCH.deb*
-    COPY influxdb.conf /etc/influxdb/influxdb.conf
+COPY influxdb.conf /etc/influxdb/influxdb.conf
 
 EXPOSE 8086
 
