@@ -10,11 +10,17 @@ RUN set -ex && \
     done
 
 ENV KAPACITOR_VERSION 1.2.1
-RUN wget -q https://dl.influxdata.com/kapacitor/releases/kapacitor_${KAPACITOR_VERSION}_amd64.deb.asc && \
-    wget -q https://dl.influxdata.com/kapacitor/releases/kapacitor_${KAPACITOR_VERSION}_amd64.deb && \
-    gpg --batch --verify kapacitor_${KAPACITOR_VERSION}_amd64.deb.asc kapacitor_${KAPACITOR_VERSION}_amd64.deb && \
-    dpkg -i kapacitor_${KAPACITOR_VERSION}_amd64.deb && \
-    rm -f kapacitor_${KAPACITOR_VERSION}_amd64.deb*
+RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
+        && case "${dpkgArch##*-}" in \
+        amd64) ARCH='amd64';; \
+        arm64) ARCH='arm64';; \
+        *) echo "unsupported architecture"; exit 1 ;; \
+    esac && \
+    wget -q https://dl.influxdata.com/kapacitor/releases/kapacitor_${KAPACITOR_VERSION}_$ARCH.deb.asc && \
+    wget -q https://dl.influxdata.com/kapacitor/releases/kapacitor_${KAPACITOR_VERSION}_$ARCH.deb && \
+    gpg --batch --verify kapacitor_${KAPACITOR_VERSION}_$ARCH.deb.asc kapacitor_${KAPACITOR_VERSION}_$ARCH.deb && \
+    dpkg -i kapacitor_${KAPACITOR_VERSION}_$ARCH.deb && \
+    rm -f kapacitor_${KAPACITOR_VERSION}_$ARCH.deb*
 COPY kapacitor.conf /etc/kapacitor/kapacitor.conf
 
 EXPOSE 9092
