@@ -30,7 +30,7 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-ent
 		INIT_QUERY="SHOW DATABASES"
 	fi
 
-	"$@" &
+	influxd "$@" &
 	pid="$!"
 
 	INFLUX_CMD="influx -host 127.0.0.1 -port 8086 -execute "
