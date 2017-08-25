@@ -15,7 +15,7 @@ setup() {
     rm_flag=''
   fi
 
-  local init_cmd="docker run -it $rm_flag -p 8086:8086 --user=$(id -u):0 -v $(pwd)/.tests/var/lib/influxdb:/var/lib/influxdb --env INFLUXDB_INIT_ONLY=true $1 ""$tag"""
+  local init_cmd="docker run -it $rm_flag -p 8086:8086 --user=$(id -u):0 -v $(pwd)/.tests/var/lib/influxdb:/var/lib/influxdb $1 ""$tag"" /init-influxdb.sh"
 
   if ! $init_cmd > /dev/null; then
     failed_tests+=("Failed to execute '$init_cmd'")
