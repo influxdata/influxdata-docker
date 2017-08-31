@@ -7,6 +7,7 @@ influx() {
 }
 
 setup() {
+
   mkdir -p ./.tests/var/lib/influxdb
 
   local rm_flag='--rm'
@@ -15,13 +16,19 @@ setup() {
     rm_flag=''
   fi
 
-  local init_cmd="docker run -it $rm_flag -p 8086:8086 --user=$(id -u):0 -v $(pwd)/.tests/var/lib/influxdb:/var/lib/influxdb $1 ""$tag"" /init-influxdb.sh"
+  PORT=$2
+
+  if [ -z "$PORT" ]; then
+    PORT=8086
+  fi
+
+  local init_cmd="docker run -it $rm_flag -p 8086:$PORT --user=$(id -u):0 -v $(pwd)/.tests/var/lib/influxdb:/var/lib/influxdb $1 ""$tag"" /init-influxdb.sh"
 
   if ! $init_cmd > /dev/null; then
     failed_tests+=("Failed to execute '$init_cmd'")
   fi
 
-  docker run -d --name influxdb-test$container_counter -p 8086:8086 --user=$(id -u):0 -v $(pwd)/.tests/var/lib/influxdb:/var/lib/influxdb $1 "$tag" > /dev/null
+  docker run -d --name influxdb-test$container_counter -p 8086:$PORT --user=$(id -u):0 -v $(pwd)/.tests/var/lib/influxdb:/var/lib/influxdb $1 "$tag" > /dev/null
 
   # Copy cli from started container
   docker cp influxdb-test$container_counter:/usr/bin/influx ./.tests/influx
@@ -170,6 +177,15 @@ test_custom_iql_script() {
   cleanup
 }
 
+test_create_db_on_non_default_port() {
+  log_msg 'Executing test_create_db_on_non_default_port'
+  setup '--env INFLUXDB_DB=test_db --env INFLUXDB_HTTP_BIND_ADDRESS=:8083' 8083
+
+  assert_contains "$(influx 'SHOW DATABASES')" 'test_db' 'test_create_db: influxdb should contain a test_db database'
+
+  cleanup
+}
+
 influxdb_dockerfiles=$(find 'influxdb' -name nightly -prune -o -name Dockerfile -print0 | xargs -0 -I{} dirname {} | sed 's@^./@@' | sed 's@//*@/@g')
 
 for path in $influxdb_dockerfiles; do
@@ -195,5 +211,7 @@ for path in $influxdb_dockerfiles; do
   test_custom_shell_script
 
   test_custom_iql_script
+
+  test_create_db_on_non_default_port
 
 done

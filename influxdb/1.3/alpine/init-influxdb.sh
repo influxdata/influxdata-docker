@@ -30,10 +30,12 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-ent
 		INIT_QUERY="SHOW DATABASES"
 	fi
 
-	influxd "$@" &
+	INFLUXDB_INIT_PORT="8686"
+
+	INFLUXDB_HTTP_BIND_ADDRESS=127.0.0.1:$INFLUXDB_INIT_PORT influxd "$@" &
 	pid="$!"
 
-	INFLUX_CMD="influx -host 127.0.0.1 -port 8086 -execute "
+	INFLUX_CMD="influx -host 127.0.0.1 -port $INFLUXDB_INIT_PORT -execute "
 
 	for i in {30..0}; do
 		if $INFLUX_CMD "$INIT_QUERY" &> /dev/null; then
@@ -50,7 +52,7 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-ent
 
 	if [ ! -z "$INIT_USERS" ]; then
 
-		INFLUX_CMD="influx -host 127.0.0.1 -port 8086 -username ${INFLUXDB_ADMIN_USER} -password ${INFLUXDB_ADMIN_PASSWORD} -execute "
+		INFLUX_CMD="influx -host 127.0.0.1 -port $INFLUXDB_INIT_PORT -username ${INFLUXDB_ADMIN_USER} -password ${INFLUXDB_ADMIN_PASSWORD} -execute "
 
 		if [ ! -z "$INFLUXDB_DB" ]; then
 			$INFLUX_CMD "$CREATE_DB_QUERY"
