@@ -30,7 +30,7 @@ if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-ent
 		INIT_QUERY="SHOW DATABASES"
 	fi
 
-	INFLUXDB_INIT_PORT="8686"
+	INFLUXDB_INIT_PORT="8086"
 
 	INFLUXDB_HTTP_BIND_ADDRESS=127.0.0.1:$INFLUXDB_INIT_PORT influxd "$@" &
 	pid="$!"
