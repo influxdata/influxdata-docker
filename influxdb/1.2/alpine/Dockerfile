@@ -2,6 +2,8 @@ FROM alpine:3.5
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 
+RUN apk add --no-cache bash
+
 ENV INFLUXDB_VERSION 1.2.4
 RUN set -ex && \
     apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
@@ -30,5 +32,6 @@ EXPOSE 8086
 VOLUME /var/lib/influxdb
 
 COPY entrypoint.sh /entrypoint.sh
+COPY init-influxdb.sh /init-influxdb.sh
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["influxd"]
