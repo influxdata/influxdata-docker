@@ -13,12 +13,12 @@ RUN set -ex && \
         gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
     done
 
-ENV TELEGRAF_VERSION 1.2.1
-RUN wget -q https://dl.influxdata.com/telegraf/releases/telegraf_${TELEGRAF_VERSION}_amd64.deb.asc && \
-    wget -q https://dl.influxdata.com/telegraf/releases/telegraf_${TELEGRAF_VERSION}_amd64.deb && \
-    gpg --batch --verify telegraf_${TELEGRAF_VERSION}_amd64.deb.asc telegraf_${TELEGRAF_VERSION}_amd64.deb && \
-    dpkg -i telegraf_${TELEGRAF_VERSION}_amd64.deb && \
-    rm -f telegraf_${TELEGRAF_VERSION}_amd64.deb*
+ENV TELEGRAF_VERSION 1.4.0
+RUN wget -q https://dl.influxdata.com/telegraf/releases/telegraf_${TELEGRAF_VERSION}-1_amd64.deb.asc && \
+    wget -q https://dl.influxdata.com/telegraf/releases/telegraf_${TELEGRAF_VERSION}-1_amd64.deb && \
+    gpg --batch --verify telegraf_${TELEGRAF_VERSION}-1_amd64.deb.asc telegraf_${TELEGRAF_VERSION}-1_amd64.deb && \
+    dpkg -i telegraf_${TELEGRAF_VERSION}-1_amd64.deb && \
+    rm -f telegraf_${TELEGRAF_VERSION}-1_amd64.deb*
 
 EXPOSE 8125/udp 8092/udp 8094
 
