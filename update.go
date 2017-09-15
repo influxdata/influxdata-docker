@@ -3,16 +3,17 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"container/list"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
+	"strconv"
 	"strings"
 
-	version "github.com/hashicorp/go-version"
 	"github.com/spf13/pflag"
 )
 
@@ -40,74 +41,6 @@ func fetchUpstream() error {
 		return err
 	}
 	return nil
-}
-
-func findDockerfiles() ([]string, error) {
-	var dirs []string
-	if err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		} else if info.IsDir() && (info.Name() == "nightly" || info.Name() == ".git") {
-			return filepath.SkipDir
-		}
-
-		// Check if there is a Dockerfile in this folder.
-		if info.Name() != "Dockerfile" {
-			return nil
-		}
-
-		// We found a Dockerfile.
-		dirs = append(dirs, filepath.Dir(path))
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-	return dirs, nil
-}
-
-type Library struct {
-	Maintainer string
-	Revs       map[string]string
-}
-
-func ReadLibrary(r io.Reader) (*Library, error) {
-	library := &Library{
-		Revs: make(map[string]string),
-	}
-
-	scanner := bufio.NewScanner(r)
-OUTER:
-	for {
-		var dir, commit string
-		for scanner.Scan() {
-			line := scanner.Text()
-			if line == "" {
-				if dir != "" && commit != "" {
-					library.Revs[dir] = commit
-				}
-				continue OUTER
-			}
-
-			parts := strings.SplitN(line, ":", 2)
-			if len(parts) != 2 {
-				continue
-			}
-			key, value := parts[0], strings.TrimSpace(parts[1])
-
-			switch key {
-			case "Maintainers":
-				library.Maintainer = value
-			case "GitCommit":
-				commit = value
-			case "Directory":
-				dir = value
-			}
-		}
-		if dir != "" && commit != "" {
-			library.Revs[dir] = commit
-		}
-		return library, nil
-	}
 }
 
 func getDefaultMaintainer() string {
@@ -138,6 +71,303 @@ func getVersion(dir string) (string, error) {
 	return "", nil
 }
 
+type Manifest struct {
+	Name          string   `json:"name"`
+	BaseDir       string   `json:"-"`
+	Versions      []string `json:"versions"`
+	Architectures []string `json:"architectures"`
+	Variants      []string `json:"variants"`
+	Latest        string   `json:"-"`
+}
+
+func FindManifests() ([]*Manifest, error) {
+	var manifests []*Manifest
+	if err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		} else if info.IsDir() && info.Name() == ".git" {
+			return filepath.SkipDir
+		}
+
+		// Check if there is a manifest.json in this folder.
+		if info.Name() != "manifest.json" {
+			return nil
+		}
+
+		// We found a manifest.json in this folder. Read and parse it into a manifest.
+		in, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		var manifest Manifest
+		if err := json.Unmarshal(in, &manifest); err != nil {
+			return err
+		}
+		manifest.BaseDir = filepath.Dir(path)
+
+		// Look through each of the versions to determine which is the latest.
+		if len(manifest.Versions) > 0 {
+			var latest *Version
+			for _, versionStr := range manifest.Versions {
+				v, err := NewVersion(versionStr)
+				if err != nil {
+					return err
+				}
+
+				if latest == nil || v.GreaterThan(latest) {
+					latest = v
+				}
+			}
+			manifest.Latest = latest.String()
+		}
+		manifests = append(manifests, &manifest)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return manifests, nil
+}
+
+func (m *Manifest) UpdateImage() error {
+	var headers []*Header
+	for _, v := range m.Versions {
+		h, err := m.updateForVersion(filepath.Join(m.BaseDir, v))
+		if err != nil {
+			return err
+		}
+		headers = append(headers, h...)
+	}
+
+	libraryFile := filepath.Join("../official-images/library", m.Name)
+	f, err := os.Create(libraryFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	fmt.Fprintf(f, "Maintainers: %s\n\n", getDefaultMaintainer())
+	for i, h := range headers {
+		if i > 0 {
+			f.WriteString("\n")
+		}
+		h.Write(f)
+	}
+	return nil
+}
+
+func (m *Manifest) updateForVersion(path string) ([]*Header, error) {
+	// Retrieve the architectures. If none are specified, assume amd64 as the default.
+	archs := m.Architectures
+	if len(archs) == 0 {
+		archs = []string{"amd64"}
+	}
+
+	// Iterate through each of the architectures and variants.
+	// Everything should have the same version.
+	var versionStr string
+	for _, arch := range archs {
+		// Check to see if a special directory exists for this architecture.
+		// If it does not, then use the base directory.
+		dir := filepath.Join(path, arch)
+		if _, err := os.Stat(dir); err != nil {
+			if !os.IsNotExist(err) {
+				return nil, err
+			}
+			dir = path
+		}
+
+		if v, err := getVersion(dir); err != nil {
+			return nil, err
+		} else if versionStr != "" && versionStr != v {
+			return nil, fmt.Errorf("mismatched versions: %s != %s", versionStr, v)
+		} else if versionStr == "" {
+			versionStr = v
+		}
+	}
+
+	// Look through the variants too. Variants must have their own directory.
+	for _, variant := range m.Variants {
+		if v, err := getVersion(filepath.Join(path, variant)); err != nil {
+			return nil, err
+		} else if versionStr != "" && versionStr != v {
+			return nil, fmt.Errorf("mismatched versions: %s != %s", versionStr, v)
+		} else if versionStr == "" {
+			versionStr = v
+		}
+	}
+
+	// The last section of the path should be a prefix of the version.
+	if !strings.HasPrefix(versionStr, filepath.Base(path)) {
+		return nil, fmt.Errorf("manifest version is not a prefix of the dockerfile version: %v.HasPrefix(%v)", versionStr, filepath.Base(path))
+	}
+
+	// Parse the version inside of the dockerfile so we can use it.
+	v, err := NewVersion(versionStr)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse version %v: %s", versionStr, err)
+	}
+
+	// Store the relevant information in a Header.
+	header := &Header{}
+	for i := 2; i <= len(v.Segments()); i++ {
+		segments := v.Segments()
+		parts := make([]string, i)
+		for j, s := range segments[:i] {
+			parts[j] = strconv.Itoa(s)
+		}
+		header.Add("Tags", strings.Join(parts, "."))
+	}
+	if m.Latest == filepath.Base(path) {
+		header.Add("Tags", "latest")
+	}
+
+	// Add each of the architectures.
+	for _, arch := range m.Architectures {
+		header.Add("Architectures", arch)
+	}
+
+	// Store the current Git Repo, Git Commit, and the Directory.
+	header.Set("GitRepo", remoteRepo)
+
+	rev, err := currentRev()
+	if err != nil {
+		return nil, err
+	}
+	header.Set("GitCommit", rev)
+	header.Set("Directory", path)
+
+	// Iterate through each of the architectures and add any overrides.
+	for _, arch := range m.Architectures {
+		dir := filepath.Join(path, arch)
+		if _, err := os.Stat(dir); err != nil {
+			if !os.IsNotExist(err) {
+				return nil, err
+			}
+			continue
+		}
+		header.Add(fmt.Sprintf("%s-Directory", arch), dir)
+	}
+
+	// Add this header as the first.
+	headers := make([]*Header, 0, len(m.Versions)+1)
+	headers = append(headers, header)
+
+	// Run through each variant doing the same thing.
+	for _, variant := range m.Variants {
+		header := &Header{}
+		for i := 2; i <= len(v.Segments()); i++ {
+			segments := v.Segments()
+			parts := make([]string, i)
+			for j, s := range segments[:i] {
+				parts[j] = strconv.Itoa(s)
+			}
+			header.Add("Tags", strings.Join(parts, ".")+"-"+variant)
+		}
+		if m.Latest == filepath.Base(path) {
+			header.Add("Tags", variant)
+		}
+		header.Set("GitRepo", remoteRepo)
+		header.Set("GitCommit", rev)
+		header.Set("Directory", filepath.Join(path, variant))
+		headers = append(headers, header)
+	}
+	return headers, nil
+}
+
+type keyValuePair struct {
+	key    string
+	values []string
+}
+
+type Header struct {
+	values *list.List
+	index  map[string]*list.Element
+}
+
+func (h *Header) Add(key, value string) {
+	e, ok := h.index[key]
+	if !ok {
+		h.Set(key, value)
+		return
+	}
+
+	kv := e.Value.(*keyValuePair)
+	kv.values = append(kv.values, value)
+}
+
+func (h *Header) Set(key, value string) {
+	if h.index == nil {
+		h.index = make(map[string]*list.Element)
+	}
+	if h.values == nil {
+		h.values = list.New()
+	}
+	values := make([]string, 1)
+	values[0] = value
+	h.index[key] = h.values.PushBack(&keyValuePair{
+		key:    key,
+		values: values,
+	})
+}
+
+func (h *Header) Write(w io.Writer) error {
+	for front := h.values.Front(); front != nil; front = front.Next() {
+		kv := front.Value.(*keyValuePair)
+		if _, err := fmt.Fprintf(w, "%s: %s\n", kv.key, strings.Join(kv.values, ", ")); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type Version struct {
+	segments []int
+}
+
+func NewVersion(s string) (*Version, error) {
+	if strings.HasPrefix(s, "v") {
+		s = s[1:]
+	}
+	parts := strings.Split(s, ".")
+	segments := make([]int, len(parts))
+	for i, p := range parts {
+		v, err := strconv.Atoi(p)
+		if err != nil {
+			return nil, fmt.Errorf("malformed version: %s", s)
+		}
+		segments[i] = v
+	}
+	return &Version{segments: segments}, nil
+}
+
+func (v *Version) GreaterThan(other *Version) bool {
+	for i, s := range v.segments {
+		if i >= len(other.segments) {
+			return true
+		}
+		if a, b := s, other.segments[i]; a != b {
+			return a > b
+		}
+	}
+	return false
+}
+
+func (v *Version) Segments() []int {
+	return v.segments
+}
+
+func (v *Version) String() string {
+	var buf bytes.Buffer
+	for i, s := range v.segments {
+		if i > 0 {
+			buf.WriteString(".")
+		}
+		buf.WriteString(strconv.Itoa(s))
+	}
+	return buf.String()
+}
+
 func realMain() int {
 	noUpdate := pflag.BoolP("no-update", "n", false, "do not update the repository")
 	pflag.Parse()
@@ -150,169 +380,18 @@ func realMain() int {
 		}
 	}
 
-	// Find which Dockerfile's exist in the repository.
-	dirs, err := findDockerfiles()
+	// Locate all of the manifests within this repository.
+	manifests, err := FindManifests()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		return 1
 	}
 
-	// Load the image names.
-	images := make(map[string][]string)
-	for _, dir := range dirs {
-		parts := strings.SplitN(dir, string(os.PathSeparator), 2)
-		if len(parts) > 1 {
-			name := parts[0]
-			images[name] = append(images[name], parts[1])
-		}
-	}
-
-	// Load the library files to find the existing revisions.
-	revs := make(map[string]string)
-	maintainers := make(map[string]string)
-	for name := range images {
-		f, err := os.Open(filepath.Join("../official-images/library", name))
-		if err != nil {
-			continue
-		}
-
-		library, err := ReadLibrary(f)
-		if err != nil {
-			f.Close()
-			fmt.Fprintf(os.Stderr, "error reading library file: %s\n", err)
+	for _, m := range manifests {
+		if err := m.UpdateImage(); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %s\n", err)
 			return 1
 		}
-		f.Close()
-
-		maintainers[name] = library.Maintainer
-		for k, v := range library.Revs {
-			revs[k] = v
-		}
-	}
-
-	// Find the current revision.
-	rev, err := currentRev()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err)
-		return 1
-	}
-
-	// Print out each of the directories and the currently known revision.
-	for _, dir := range dirs {
-		r, ok := revs[dir]
-		if !ok {
-			// Set the revision for this directory to the current revision.
-			revs[dir] = rev
-			continue
-		}
-
-		// If the revision is different from the current revision, check if we
-		// need to update it by running a diff between the current revision and
-		// this one.
-		if r == rev {
-			continue
-		}
-
-		cmd := exec.Command("git", "diff", "--quiet", fmt.Sprintf("%s..%s", r, rev), "--", dir)
-		if err := cmd.Run(); err != nil {
-			if _, ok := err.(*exec.ExitError); !ok {
-				fmt.Fprintf(os.Stderr, "error: %s\n", err)
-				return 1
-			}
-
-			// An error indicates there is something different. This may catch
-			// a change in a subfolder, but I don't really care since these
-			// will commonly be changed at the same time.
-			revs[dir] = rev
-		}
-	}
-
-	// Iterate over each of the images so we can rewrite the files.
-	for name, dirs := range images {
-		sort.Strings(dirs)
-
-		versions := make(map[string]string, len(dirs))
-		for _, dir := range dirs {
-			v, err := getVersion(filepath.Join(name, dir))
-			if err != nil {
-				continue
-			}
-			versions[dir] = v
-		}
-
-		var (
-			prefix string
-			latest *version.Version
-		)
-		for dir, v := range versions {
-			if strings.Contains(v, "~rc") || strings.Contains(v, "-rc") {
-				continue
-			}
-			ver, err := version.NewVersion(v)
-			if err != nil {
-				continue
-			}
-
-			if latest == nil || ver.GreaterThan(latest) {
-				parts := strings.SplitN(dir, string(os.PathSeparator), 2)
-				prefix = parts[0]
-				latest = ver
-			}
-		}
-
-		var buf bytes.Buffer
-		m := maintainers[name]
-		if m == "" {
-			m = getDefaultMaintainer()
-		}
-		fmt.Fprintf(&buf, "Maintainers: %s\n", m)
-
-		for _, subdir := range dirs {
-			dir := filepath.Join(name, subdir)
-			v := versions[subdir]
-
-			var tags []string
-			if strings.Contains(v, "~rc") || strings.Contains(v, "-rc") {
-				tag := strings.Replace(strings.Replace(v, "~", "-", -1), string(os.PathSeparator), "-", -1)
-				if strings.HasSuffix(subdir, "alpine") {
-					tag += "-alpine"
-				}
-				tags = append(tags, tag)
-			} else {
-				tags = append(tags, strings.Replace(subdir, string(os.PathSeparator), "-", -1))
-				parts := strings.SplitN(subdir, string(os.PathSeparator), 2)
-				if len(parts) > 1 {
-					tags = append(tags, fmt.Sprintf("%s-%s", v, strings.Replace(parts[1], string(os.PathSeparator), "-", -1)))
-				} else {
-					tags = append(tags, v)
-				}
-
-				if strings.HasPrefix(subdir, prefix) {
-					if strings.HasSuffix(subdir, "alpine") {
-						tags = append(tags, "alpine")
-					} else {
-						tags = append(tags, "latest")
-					}
-				}
-			}
-
-			fmt.Fprintf(&buf, "\nTags: %s\n", strings.Join(tags, ", "))
-			fmt.Fprintf(&buf, "GitRepo: %s\n", remoteRepo)
-			fmt.Fprintf(&buf, "GitCommit: %s\n", revs[dir])
-			fmt.Fprintf(&buf, "Directory: %s\n", dir)
-		}
-
-		libraryFile := filepath.Join("../official-images/library", name)
-		cur, err := ioutil.ReadFile(libraryFile)
-		if err == nil && bytes.Equal(buf.Bytes(), cur) {
-			continue
-		}
-
-		if err := ioutil.WriteFile(libraryFile, buf.Bytes(), 0666); err != nil {
-			fmt.Fprintf(os.Stderr, "error: write file: %s\n", err)
-			return 1
-		}
-		fmt.Printf("Wrote %s\n", libraryFile)
 	}
 	return 0
 }
