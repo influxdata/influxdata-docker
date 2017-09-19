@@ -1,6 +1,8 @@
-FROM debian:jessie-slim
+FROM debian:stretch-slim
 
 RUN set -ex && \
+    apt-get update && apt-get install -y gpg dirmngr --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/* && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
     do \
@@ -10,9 +12,16 @@ RUN set -ex && \
     done
 
 ENV CHRONOGRAF_VERSION 1.3.8.1
-RUN buildDeps='curl' \
+RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
+    case "${dpkgArch##*-}" in \
+      amd64) ARCH='amd64';; \
+      arm64) ARCH='arm64';; \
+      armhf) ARCH='armhf';; \
+      armel) ARCH='armel';; \
+      *)     echo "Unsupported architecture: ${dpkgArch}"; exit 1;; \
+    esac && \
     set -x && \
-    apt-get update && apt-get install -y ca-certificates $buildDeps --no-install-recommends && \
+    apt-get update && apt-get install -y ca-certificates curl --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* && \
     curl -SLO "https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_amd64.deb.asc" && \
     curl -SLO "https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_amd64.deb" && \
