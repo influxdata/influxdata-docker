@@ -2,7 +2,9 @@
   "name": "kapacitor",
   "versions": ["1.2", "1.3"],
   "architectures": [
-    "amd64"
+    "amd64",
+    "arm32v7",
+    "arm64v8"
   ],
   "variants": [
     "alpine"
