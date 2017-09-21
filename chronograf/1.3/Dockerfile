@@ -23,11 +23,11 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     set -x && \
     apt-get update && apt-get install -y ca-certificates curl --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* && \
-    curl -SLO "https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_amd64.deb.asc" && \
-    curl -SLO "https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_amd64.deb" && \
-    gpg --batch --verify chronograf_${CHRONOGRAF_VERSION}_amd64.deb.asc chronograf_${CHRONOGRAF_VERSION}_amd64.deb && \
-    dpkg -i chronograf_${CHRONOGRAF_VERSION}_amd64.deb && \
-    rm -f chronograf_${CHRONOGRAF_VERSION}_amd64.deb* && \
+    curl -SLO "https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_${ARCH}.deb.asc" && \
+    curl -SLO "https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_${ARCH}.deb" && \
+    gpg --batch --verify chronograf_${CHRONOGRAF_VERSION}_${ARCH}.deb.asc chronograf_${CHRONOGRAF_VERSION}_${ARCH}.deb && \
+    dpkg -i chronograf_${CHRONOGRAF_VERSION}_${ARCH}.deb && \
+    rm -f chronograf_${CHRONOGRAF_VERSION}_${ARCH}.deb* && \
     apt-get purge -y --auto-remove $buildDeps
 
 COPY LICENSE /usr/share/chronograf/LICENSE
