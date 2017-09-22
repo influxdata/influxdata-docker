@@ -19,9 +19,9 @@ import (
 
 const remoteRepo = "git://github.com/influxdata/influxdata-docker"
 
-func currentRev() (string, error) {
+func latestRev(path string) (string, error) {
 	var buf bytes.Buffer
-	cmd := exec.Command("git", "rev-parse", "HEAD")
+	cmd := exec.Command("git", "rev-list", "-1", "--first-parent", "HEAD", "--", path)
 	cmd.Stdout = &buf
 	cmd.Stderr = os.Stderr
 
@@ -230,7 +230,7 @@ func (m *Manifest) updateForVersion(path string) ([]*Header, error) {
 	// Store the current Git Repo, Git Commit, and the Directory.
 	header.Set("GitRepo", remoteRepo)
 
-	rev, err := currentRev()
+	rev, err := latestRev(path)
 	if err != nil {
 		return nil, err
 	}
