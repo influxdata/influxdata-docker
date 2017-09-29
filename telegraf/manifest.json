@@ -4,7 +4,8 @@
   "architectures": [
     "amd64",
     "arm32v7",
-    "arm64v8"
+    "arm64v8",
+    "windows-amd64"
   ],
   "variants": [
     "alpine"
