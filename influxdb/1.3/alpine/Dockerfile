@@ -3,7 +3,7 @@ FROM alpine:3.5
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache tzdata bash
 
-ENV INFLUXDB_VERSION 1.3.5
+ENV INFLUXDB_VERSION 1.3.6
 RUN set -ex && \
     apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     update-ca-certificates && \
@@ -18,11 +18,9 @@ RUN set -ex && \
     wget -q https://dl.influxdata.com/influxdb/releases/influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
     gpg --batch --verify influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
     mkdir -p /usr/src && \
-    tar -C /usr/src -xzf influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
-    rm -f /usr/src/influxdb-*/influxdb.conf && \
-    chmod +x /usr/src/influxdb-*/* && \
-    cp -a /usr/src/influxdb-*/* /usr/bin/ && \
-    rm -rf *.tar.gz* /usr/src /root/.gnupg && \
+    tar -xzf influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    chmod +x /usr/bin/influx_inspect /usr/bin/influx_stress /usr/bin/influxd /usr/bin/influx_tsm /usr/bin/influx && \
+    rm -rf *.tar.gz* /usr/src /root/.gnupg /etc/influxdb/influxdb.conf && \
     apk del .build-deps
 COPY influxdb.conf /etc/influxdb/influxdb.conf
 
