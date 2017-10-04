@@ -1,7 +1,7 @@
 FROM buildpack-deps:stretch-curl
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends snmp && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends snmp procps && \
     rm -rf /var/lib/apt/lists/*
 
 RUN set -ex && \
