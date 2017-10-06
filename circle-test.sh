@@ -12,11 +12,15 @@ log_msg() {
 }
 
 docker_build() {
-  # CircleCI cannot build docker images with --rm=true correctly.
-  if [ -z "$CIRCLE_BUILD_NUM" ]; then
-    docker build --rm=true "$@"
-  else
+  if [ ! -z "$BUILD_NUMBER" ]; then
+    # Build on Jenkins without using the cache.
+    docker build --no-cache --rm=true "$@"
+  elif [ ! -z "$CIRCLE_BUILD_NUM" ]; then
+    # CircleCI cannot build docker images with --rm=true correctly.
     docker build --no-cache --rm=false "$@"
+  else
+    # Local building should use the cache for speedy development.
+    docker build --rm=true "$@"
   fi
 }
 
@@ -77,11 +81,11 @@ assert_contains() {
 failed_tests=()
 
 # Iterate over every circle-test.sh script in any subdirectory
-circle_tests=$(find "$dir" -mindepth 2 -name circle-test.sh -print0)
-for path in $circle_tests; do
-  log_msg "Executing $path"
-  . $path
-done
+#circle_tests=$(find "$dir" -mindepth 2 -name circle-test.sh -print0)
+#for path in $circle_tests; do
+#  log_msg "Executing $path"
+#  . $path
+#done
 
 if [ ${#failed_tests[@]} -eq 0 ]; then
   log_msg "All tests succeeded."

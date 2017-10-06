@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"container/list"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,8 +14,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"github.com/spf13/pflag"
 )
 
 const remoteRepo = "git://github.com/influxdata/influxdata-docker"
@@ -369,8 +368,8 @@ func (v *Version) String() string {
 }
 
 func realMain() int {
-	noUpdate := pflag.BoolP("no-update", "n", false, "do not update the repository")
-	pflag.Parse()
+	noUpdate := flag.Bool("n", false, "do not update the repository")
+	flag.Parse()
 
 	// Update the official-images repository to the latest version of upstream.
 	if !*noUpdate {
