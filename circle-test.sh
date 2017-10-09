@@ -14,7 +14,7 @@ log_msg() {
 docker_build() {
   if [ ! -z "$BUILD_NUMBER" ]; then
     # Build on Jenkins without using the cache.
-    docker build --no-cache --rm=true "$@"
+    docker build --no-cache --force-rm "$@"
   elif [ ! -z "$CIRCLE_BUILD_NUM" ]; then
     # CircleCI cannot build docker images with --rm=true correctly.
     docker build --no-cache --rm=false "$@"
@@ -40,6 +40,10 @@ for path in $dockerfiles; do
   if ! docker_build -t "$tag" "$path"; then
     failed_builds+=("$tag")
   else
+    if [ ! -z "$BUILD_NUMBER" ]; then
+      # Remove the image if we are running on Jenkins.
+      docker rmi "$tag"
+    fi
     tags+=("$tag")
   fi
 done
