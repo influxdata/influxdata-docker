@@ -80,7 +80,7 @@ pipeline {
             withDockerContainer(image: "jsternberg/hub") {
               sh """
                 if ! git diff --quiet; then
-                  git commit -am "Update influxdata images"
+                  git -c user.name="Jonathan A. Sternberg" -c user.email="jonathan@influxdb.com" commit -am "Update influxdata images"
                   git push origin master
                   if ! hub pr show &> /dev/null; then
                     hub pull-request -m "Update influxdata images"
