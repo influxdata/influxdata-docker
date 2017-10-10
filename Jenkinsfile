@@ -79,6 +79,7 @@ pipeline {
         }
 
         dir('official-images') {
+          sh "docker pull jsternberg/hub"
           withEnv(["GITHUB_USER=${DOCKER_MAINTAINER_USR}", "GITHUB_TOKEN=${DOCKER_MAINTAINER_PSW}"]) {
             withDockerContainer(image: "jsternberg/hub") {
               sh """
