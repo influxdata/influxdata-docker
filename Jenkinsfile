@@ -48,10 +48,6 @@ pipeline {
     }
 
     stage('Update official images') {
-      when {
-        branch 'master'
-      }
-
       steps {
         dir('official-images') {
           checkout(
