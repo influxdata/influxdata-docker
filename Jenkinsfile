@@ -80,7 +80,6 @@ pipeline {
       }
 
       steps {
-        sh "docker pull jsternberg/hub"
         dir('official-images') {
           sshagent(credentials: ['jenkins-hercules-ssh']) {
             sh """
@@ -90,13 +89,14 @@ pipeline {
           }
 
           sh """
-            if ! git remote | grep upstream; then
+            if ! git remote | grep upstream &> /dev/null; then
               git remote add upstream git://github.com/docker-library/official-images.git
             else
               git remote set-url upstream git://github.com/docker-library/official-images.git
             fi
           """
 
+          sh "docker pull jsternberg/hub"
           withEnv(["GITHUB_USER=${DOCKER_MAINTAINER_USR}", "GITHUB_TOKEN=${DOCKER_MAINTAINER_PSW}"]) {
             withDockerContainer(image: "jsternberg/hub") {
               sh """
