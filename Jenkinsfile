@@ -89,10 +89,13 @@ pipeline {
           }
 
           sh """
-            if ! git remote | grep upstream &> /dev/null; then
-              git remote add upstream git://github.com/docker-library/official-images.git
+            desired_remote_url=git://github.com/docker-library/official-images.git
+            if current_remote_url=\$(git remote get-url upstream 2> /dev/null); then
+              if [ "\$current_remote_url" != "\$desired_remote_url" ]; then
+                git remote set-url upstream "\$desired_remote_url"
+              fi
             else
-              git remote set-url upstream git://github.com/docker-library/official-images.git
+              git remote add upstream "\$desired_remote_url"
             fi
           """
 
