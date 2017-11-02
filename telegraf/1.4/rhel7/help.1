@@ -1,0 +1,64 @@
+.TH "TELEGRAF " "1" " Container Image Pages" "Gunnar Aasen" "July 31, 2017"  ""
+
+
+.SH NAME
+.PP
+telegraf \- telegraf container image
+
+
+.SH DESCRIPTION
+.PP
+Telegraf is an open source agent written in Go for collecting metrics and data on the system it's running on or from other services. Telegraf writes data it collects to InfluxDB in the correct format.
+
+.PP
+Files added to the container during docker build include: /help.1.
+
+
+.SH USAGE
+.PP
+The default configuration requires a running InfluxDB instance as an output plugin. Ensure that InfluxDB is running on port 8086 before starting the Telegraf container.
+
+.PP
+Minimal example to start an InfluxDB container:
+
+.PP
+.RS
+
+.nf
+$ docker run \-d \-\-name influxdb \-p 8083:8083 \-p 8086:8086 influxdb
+
+.fi
+.RE
+
+.PP
+Starting Telegraf using the default config, which connects to InfluxDB at \fB\fChttp://localhost:8086/\fR:
+
+.PP
+.RS
+
+.nf
+$ docker run \-\-net=container:influxdb telegraf
+
+.fi
+.RE
+
+
+.SH LABELS
+
+.SH SECURITY IMPLICATIONS
+.PP
+Telegraf exposes the following ports by default
+.IP \n+[step]
+
+\item 8125 StatsD
+\item 8092 UDP
+\item 8094 TCP
+
+.SH HISTORY
+.PP
+Similar to a Changelog of sorts which can be as detailed as the maintainer wishes.
+
+
+.SH AUTHORS
+.PP
+Gunnar Aasen

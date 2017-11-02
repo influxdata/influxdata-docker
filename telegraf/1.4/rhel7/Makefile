@@ -1,6 +1,6 @@
 CONTEXT = influxdata
-VERSION = v1.3.7
-IMAGE_NAME = influxdb
+VERSION = v1.4.3
+IMAGE_NAME = telegraf
 REGISTRY = docker-registry.default.svc.cluster.local:5000
 OC_USER=developer
 OC_PASS=developer
