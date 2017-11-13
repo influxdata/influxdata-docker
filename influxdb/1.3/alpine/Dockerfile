@@ -1,4 +1,4 @@
-FROM alpine:3.5
+FROM alpine:3.6
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache tzdata bash
