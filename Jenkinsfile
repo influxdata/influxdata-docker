@@ -15,34 +15,38 @@ pipeline {
       }
     }
 
-    stage('Build chronograf') {
-      steps {
-        dir('influxdata-docker') {
-          sh './circle-test.sh chronograf'
+    stage('Build docker images') {
+      parallel {
+        stage('chronograf') {
+          steps {
+            dir('influxdata-docker') {
+              sh './circle-test.sh chronograf'
+            }
+          }
         }
-      }
-    }
 
-    stage('Build influxdb') {
-      steps {
-        dir('influxdata-docker') {
-          sh './circle-test.sh influxdb'
+        stage('influxdb') {
+          steps {
+            dir('influxdata-docker') {
+              sh './circle-test.sh influxdb'
+            }
+          }
         }
-      }
-    }
 
-    stage('Build kapacitor') {
-      steps {
-        dir('influxdata-docker') {
-          sh './circle-test.sh kapacitor'
+        stage('kapacitor') {
+          steps {
+            dir('influxdata-docker') {
+              sh './circle-test.sh kapacitor'
+            }
+          }
         }
-      }
-    }
 
-    stage('Build telegraf') {
-      steps {
-        dir('influxdata-docker') {
-          sh './circle-test.sh telegraf'
+        stage('telegraf') {
+          steps {
+            dir('influxdata-docker') {
+              sh './circle-test.sh telegraf'
+            }
+          }
         }
       }
     }
