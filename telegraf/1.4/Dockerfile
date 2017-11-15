@@ -17,6 +17,7 @@ ENV TELEGRAF_VERSION 1.4.4
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     case "${dpkgArch##*-}" in \
       amd64) ARCH='amd64';; \
+      i386)  ARCH='i386' ;; \
       arm64) ARCH='arm64';; \
       armhf) ARCH='armhf';; \
       armel) ARCH='armel';; \

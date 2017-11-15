@@ -15,6 +15,7 @@ ENV CHRONOGRAF_VERSION 1.3.10.0
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     case "${dpkgArch##*-}" in \
       amd64) ARCH='amd64';; \
+      i386)  ARCH='i386' ;; \
       arm64) ARCH='arm64';; \
       armhf) ARCH='armhf';; \
       armel) ARCH='armel';; \
