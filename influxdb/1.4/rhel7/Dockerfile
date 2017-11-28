@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/rhel7
 MAINTAINER InfluxData Engineering <contact@influxdata.com>
 
-ENV INFLUXDB_VERSION=1.3.7 \
+ENV INFLUXDB_VERSION=1.4.2 \
     HOME=/var/lib/influxdb \
     SRC=/opt/influxdb/src \
     USER=influxdb \

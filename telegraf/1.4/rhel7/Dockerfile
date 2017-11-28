@@ -1,11 +1,11 @@
 FROM registry.access.redhat.com/rhel7
 MAINTAINER InfluxData Engineering <contact@influxdata.com>
 
-ENV TELEGRAF_VERSION=1.4.3 \
+ENV TELEGRAF_VERSION=1.4.4 \
     HOME=/var/lib/telegraf \
     SRC=/opt/telegraf/src \
     USER=telegraf \
-    UID=8081
+    UID=1001
 
 ENV SUMMARY="The plugin-driven server agent for collecting & reporting metrics" \
     DESCRIPTION="Telegraf is a plugin-drive metric collection agent for the \
