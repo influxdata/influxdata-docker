@@ -32,7 +32,7 @@ tags=()
 
 # Gather directories with a Dockerfile and sanitize the path to remove leading
 # a leading ./ and multiple slashes into a single slash.
-dockerfiles=$(find "$dir" -name nightly -prune -o -name Dockerfile -print0 | xargs -0 -I{} dirname {} | sed 's@^./@@' | sed 's@//*@/@g')
+dockerfiles=$(find "$dir" -name nightly -prune -o -name Dockerfile -print0 | grep -v dockerlib | xargs -0 -I{} dirname {} | sed 's@^./@@' | sed 's@//*@/@g')
 for path in $dockerfiles; do
   # Generate a tag by replacing the first slash with a colon and all remaining slashes with a dash.
   tag=$(echo $path | sed 's@/@:@' | sed 's@/@-@g')
