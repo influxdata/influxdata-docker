@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/rhel7
 MAINTAINER InfluxData Engineering <contact@influxdata.com>
 
-ENV TELEGRAF_VERSION=1.4.4 \
+ENV TELEGRAF_VERSION=1.4.5 \
     HOME=/var/lib/telegraf \
     SRC=/opt/telegraf/src \
     USER=telegraf \
