@@ -51,7 +51,7 @@ pipeline {
       }
     }
 
-    stage('Checkout official images') {
+    stage('Update official images') {
       steps {
         dir('official-images') {
           checkout(
@@ -69,21 +69,20 @@ pipeline {
           // Reset master to the value at origin.
           sh "git checkout master && git reset --hard origin/master"
         }
-      }
-    }
 
-    stage('Update official images') {
-      agent {
-        dockerfile {
-          dir 'influxdata-docker/dockerlib'
+        dir('influxdata-docker') {
+          sh "docker build -t influxdata/dockerlib:build-${BUILD_NUMBER} dockerlib"
+        }
+
+        withDockerContainer(image: "influxdata/dockerlib:build-${BUILD_NUMBER}") {
+          sh "cd influxdata-docker; dockerlib update"
         }
       }
 
-      steps {
-        sh """
-        cd influxdata-docker
-        dockerlib update
-        """
+      post {
+        always {
+          sh "docker rmi -f influxdata/dockerlib:build-${BUILD_NUMBER}"
+        }
       }
     }
 
