@@ -75,12 +75,15 @@ pipeline {
     stage('Update official images') {
       agent {
         dockerfile {
-          dir 'dockerlib'
+          dir 'influxdata-docker/dockerlib'
         }
       }
 
       steps {
-        sh "dockerlib update"
+        sh """
+        cd influxdata-docker
+        dockerlib update
+        """
       }
     }
 
