@@ -51,7 +51,7 @@ pipeline {
       }
     }
 
-    stage('Update official images') {
+    stage('Checkout official images') {
       steps {
         dir('official-images') {
           checkout(
@@ -69,10 +69,18 @@ pipeline {
           // Reset master to the value at origin.
           sh "git checkout master && git reset --hard origin/master"
         }
+      }
+    }
 
-        withDockerContainer(image: "golang:1.9.1-stretch") {
-          sh 'cd influxdata-docker; go run update.go -n'
+    stage('Update official images') {
+      agent {
+        dockerfile {
+          dir 'dockerlib'
         }
+      }
+
+      steps {
+        sh "dockerlib update"
       }
     }
 
