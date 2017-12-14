@@ -7,6 +7,12 @@
     "arm64v8"
   ],
   "variants": [
-    {"name": "alpine"}
+    {
+      "name": "alpine"
+    },
+    {
+      "name": "enterprise",
+      "versions": ["1.3"]
+    }
   ]
 }
