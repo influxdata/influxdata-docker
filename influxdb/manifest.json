@@ -11,7 +11,11 @@
       "name": "alpine"
     },
     {
-      "name": "enterprise",
+      "name": "data",
+      "versions": ["1.3"]
+    },
+    {
+      "name": "meta",
       "versions": ["1.3"]
     }
   ]
