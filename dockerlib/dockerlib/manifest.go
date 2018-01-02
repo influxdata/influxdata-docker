@@ -73,12 +73,12 @@ func ReadImageManifest(fpath string) (*ImageManifest, error) {
 
 	// Propagate the image values to the variants and determine the base directory
 	// and the latest version.
-	for _, variant := range manifest.Variants {
+	for i, variant := range manifest.Variants {
 		if len(variant.Versions) == 0 {
-			variant.Versions = manifest.Versions
-			variant.Latest = manifest.Latest
+			manifest.Variants[i].Versions = manifest.Versions
+			manifest.Variants[i].Latest = manifest.Latest
 		} else {
-			variant.Latest = Versions(variant.Versions).Latest().String()
+			manifest.Variants[i].Latest = Versions(variant.Versions).Latest().String()
 		}
 	}
 	return &manifest, nil
@@ -148,7 +148,7 @@ func (m *ImageManifest) Write(w io.Writer, header *Header) error {
 				}
 				header.Add("Tags", strings.Join(parts, ".")+"-"+variant.Name)
 			}
-			if m.Latest == v.String() {
+			if variant.Latest == v.String() {
 				header.Add("Tags", variant.Name)
 			}
 			for _, arch := range variant.Architectures {
