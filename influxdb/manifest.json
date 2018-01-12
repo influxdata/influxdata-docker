@@ -15,7 +15,15 @@
       "versions": ["1.3"]
     },
     {
+      "name": "data-alpine",
+      "versions": ["1.3"]
+    },
+    {
       "name": "meta",
+      "versions": ["1.3"]
+    },
+    {
+      "name": "meta-alpine",
       "versions": ["1.3"]
     }
   ]
