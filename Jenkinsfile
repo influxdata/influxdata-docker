@@ -117,7 +117,7 @@ pipeline {
           withEnv(["GITHUB_USER=${DOCKER_MAINTAINER_USR}", "GITHUB_TOKEN=${DOCKER_MAINTAINER_PSW}"]) {
             withDockerContainer(image: "jsternberg/hub") {
               sh """
-                if ! hub pr show &> /dev/null; then
+                if ! hub pr show; then
                   hub pull-request -m "Update influxdata images"
                 fi
               """
