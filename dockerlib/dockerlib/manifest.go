@@ -140,16 +140,17 @@ func (m *ImageManifest) Write(w io.Writer, header *Header) error {
 			if err != nil {
 				return err
 			}
+			name := strings.Replace(variant.Name, "/", "-", -1)
 			for i := 2; i <= len(version.Segments()); i++ {
 				segments := version.Segments()
 				parts := make([]string, i)
 				for j, s := range segments[:i] {
 					parts[j] = strconv.Itoa(s)
 				}
-				header.Add("Tags", strings.Join(parts, ".")+"-"+variant.Name)
+				header.Add("Tags", strings.Join(parts, ".")+"-"+name)
 			}
 			if variant.Latest == v.String() {
-				header.Add("Tags", variant.Name)
+				header.Add("Tags", name)
 			}
 			for _, arch := range variant.Architectures {
 				header.Add("Architectures", arch)
