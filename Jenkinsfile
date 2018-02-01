@@ -127,4 +127,16 @@ pipeline {
       }
     }
   }
+
+  post {
+    changed {
+      script {
+        if ( currentBuild.currentResult == 'SUCCESS' ) {
+          slackSend(channel: '#docker-builds', color: '#00FF00', message: '@channel the docker build has returned back to normal.')
+        } else {
+          slackSend(channel: '#docker-builds', color: '#FF0000', message: '@channel the docker build has failed!')
+        }
+      }
+    }
+  }
 }
