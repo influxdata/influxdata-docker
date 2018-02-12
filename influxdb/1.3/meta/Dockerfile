@@ -10,8 +10,8 @@ RUN set -ex && \
     done
 
 ENV INFLUXDB_VERSION 1.3.9-c1.3.9
-RUN wget -q https://dl.influxdata.com/enterprise/releases/influxdb-meta_${INFLUXDB_VERSION}_amd64.deb.asc && \
-    wget -q https://dl.influxdata.com/enterprise/releases/influxdb-meta_${INFLUXDB_VERSION}_amd64.deb && \
+RUN wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta_${INFLUXDB_VERSION}_amd64.deb.asc && \
+    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta_${INFLUXDB_VERSION}_amd64.deb && \
     gpg --batch --verify influxdb-meta_${INFLUXDB_VERSION}_amd64.deb.asc influxdb-meta_${INFLUXDB_VERSION}_amd64.deb && \
     dpkg -i influxdb-meta_${INFLUXDB_VERSION}_amd64.deb && \
     rm -f influxdb-meta_${INFLUXDB_VERSION}_amd64.deb*

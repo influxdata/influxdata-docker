@@ -9,8 +9,8 @@ RUN set -ex && \
         gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
     done
 
-RUN wget -q https://dl.influxdata.com/influxdb/nightlies/influxdb_nightly_amd64.deb.asc && \
-    wget -q https://dl.influxdata.com/influxdb/nightlies/influxdb_nightly_amd64.deb && \
+RUN wget --no-verbose https://dl.influxdata.com/influxdb/nightlies/influxdb_nightly_amd64.deb.asc && \
+    wget --no-verbose https://dl.influxdata.com/influxdb/nightlies/influxdb_nightly_amd64.deb && \
     gpg --batch --verify influxdb_nightly_amd64.deb.asc influxdb_nightly_amd64.deb && \
     dpkg -i influxdb_nightly_amd64.deb && \
     rm -f influxdb_nightly_amd64.deb*
