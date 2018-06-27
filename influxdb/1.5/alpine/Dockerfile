@@ -3,7 +3,7 @@ FROM alpine:3.6
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache tzdata bash
 
-ENV INFLUXDB_VERSION 1.5.3
+ENV INFLUXDB_VERSION 1.5.4
 RUN set -ex && \
     apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     update-ca-certificates && \
