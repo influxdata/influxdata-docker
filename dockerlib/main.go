@@ -35,7 +35,7 @@ func fetchUpstream() error {
 }
 
 func getDefaultMaintainer() string {
-	return "Jonathan A. Sternberg <jonathan@influxdb.com> (@jsternberg)"
+	return "Jonathan A. Sternberg <jonathan@influxdata.com> (@jsternberg)"
 }
 
 func main() {

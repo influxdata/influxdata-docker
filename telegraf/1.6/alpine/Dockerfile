@@ -1,10 +1,10 @@
 FROM alpine:3.6
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors && \
+RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps && \
     update-ca-certificates
 
-ENV TELEGRAF_VERSION 1.5.3
+ENV TELEGRAF_VERSION 1.6.4
 
 RUN set -ex && \
     apk add --no-cache --virtual .build-deps wget gnupg tar && \
