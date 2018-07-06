@@ -11,16 +11,16 @@
       "name": "alpine"
     },
     {
-      "name": "data",
+      "name": "data"
     },
     {
-      "name": "data/alpine",
+      "name": "data/alpine"
     },
     {
-      "name": "meta",
+      "name": "meta"
     },
     {
-      "name": "meta/alpine",
+      "name": "meta/alpine"
     }
   ]
 }
