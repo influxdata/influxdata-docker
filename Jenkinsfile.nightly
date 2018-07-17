@@ -1,0 +1,27 @@
+pipeline {
+  agent any
+
+  stages {
+    stage('Build influxdb nightly') {
+      steps {
+        script {
+          docker.withRegistry('https://quay.io', 'quay.io') {
+            def image = docker.build("quay.io/influxdb/influxdb:nightly", "influxdb/nightly")
+            try {
+              image.push()
+            } finally {
+              sh "docker rmi ${image.id}"
+            }
+
+            def alpine = docker.build("quay.io/influxdb/influxdb:nightly-alpine", "influxdb/nightly/alpine")
+            try {
+              alpine.push()
+            } finally {
+              sh "docker rmi ${alpine.id}"
+            }
+          }
+        }
+      }
+    }
+  }
+}
