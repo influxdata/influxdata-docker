@@ -83,11 +83,11 @@ test_default_with_auth_enabled_by_1() {
   cleanup
 }
 
-test_create_db() {
-  log_msg 'Executing test_create_db'
-  setup '--env INFLUXDB_DB=test_db'
+test_create_db_with_keyword_name() {
+  log_msg 'Executing test_create_db_with_keyword_name'
+  setup '--env INFLUXDB_DB=database'
 
-  assert_contains "$(influx 'SHOW DATABASES')" 'test_db' 'test_create_db: influxdb should contain a test_db database'
+  assert_contains "$(influx 'SHOW DATABASES')" 'database' 'test_create_db_with_keyword_name: influxdb should contain a database with name "database"'
 
   cleanup
 }
@@ -209,7 +209,7 @@ for path in $influxdb_dockerfiles; do
 
   test_default_with_auth_enabled_by_1
 
-  test_create_db
+  test_create_db_with_keyword_name
 
   test_create_admin
 
