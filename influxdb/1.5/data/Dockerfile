@@ -10,7 +10,19 @@ RUN set -ex && \
     done
 
 ENV INFLUXDB_VERSION 1.5.4-c1.5.4
-RUN wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-data_${INFLUXDB_VERSION}_amd64.deb.asc && \
+RUN \
+    # Download the static meta package so we can retrieve only influxd-ctl. Don't install the package because we
+    # just want the influxd-ctl command and not the influxd-meta server.
+    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc && \
+    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    gpg --batch --verify influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    mkdir -p /usr/src && \
+    tar -C /usr/src -xzf influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    chmod +x /usr/src/influxdb-*/* && \
+    cp -a /usr/src/influxdb-*/influxd-ctl /usr/bin/influxd-ctl && \
+    rm -rf *.tar.gz* /usr/src && \
+    # Download the influxdb-data package and install it.
+    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-data_${INFLUXDB_VERSION}_amd64.deb.asc && \
     wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-data_${INFLUXDB_VERSION}_amd64.deb && \
     gpg --batch --verify influxdb-data_${INFLUXDB_VERSION}_amd64.deb.asc influxdb-data_${INFLUXDB_VERSION}_amd64.deb && \
     dpkg -i influxdb-data_${INFLUXDB_VERSION}_amd64.deb && \
