@@ -14,10 +14,19 @@ RUN set -ex && \
         gpg --keyserver pgp.mit.edu --recv-keys "$key" || \
         gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
     done && \
+    # Download the meta tarball so we can get influxd-ctl.
+    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc && \
+    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    gpg --batch --verify influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    mkdir -p /usr/src && \
+    tar -C /usr/src -xzf influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    chmod +x /usr/src/influxdb-*/* && \
+    cp -a /usr/src/influxdb-*/* /usr/bin/ && \
+    rm -rf *.tar.gz* /usr/src/* && \
+    # Download the data tarball and copy the binaries.
     wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-data-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-data-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
     gpg --batch --verify influxdb-data-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc influxdb-data-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
-    mkdir -p /usr/src && \
     tar -C /usr/src -xzf influxdb-data-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
     rm -f /usr/src/influxdb-*/influxdb.conf && \
     chmod +x /usr/src/influxdb-*/* && \
