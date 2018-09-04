@@ -5,8 +5,9 @@ RUN apk add --no-cache tzdata bash
 
 ENV INFLUXDB_VERSION 1.6.2
 RUN set -ex && \
-    apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
+    apk add --no-cache ca-certificates && \
     update-ca-certificates && \
+    apk add --no-cache --virtual .build-deps wget gnupg tar && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
     do \
