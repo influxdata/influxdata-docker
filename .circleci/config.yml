@@ -1,0 +1,10 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.11
+    working_directory: /go/src/github.com/influxdata/influxdata-docker
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: bash circle-test.sh
