@@ -28,6 +28,9 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     dpkg -i telegraf_${TELEGRAF_VERSION}-1_${ARCH}.deb && \
     rm -f telegraf_${TELEGRAF_VERSION}-1_${ARCH}.deb*
 
+COPY licenses.tar.gz /usr/share/doc/telegraf/licenses.tar.gz
+RUN tar -xvzf /usr/share/doc/telegraf/licenses.tar.gz --directory /usr/share/doc/telegraf/
+
 EXPOSE 8125/udp 8092/udp 8094
 
 COPY entrypoint.sh /entrypoint.sh
