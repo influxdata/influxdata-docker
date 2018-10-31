@@ -25,6 +25,7 @@ RUN set -ex && \
     cp -a /usr/src/kapacitor-*/* /usr/bin/ && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
     apk del .build-deps
+    
 COPY kapacitor.conf /etc/kapacitor/kapacitor.conf
 
 EXPOSE 9092
