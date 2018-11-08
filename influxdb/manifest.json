@@ -1,6 +1,6 @@
 {
   "name": "influxdb",
-  "versions": ["1.5", "1.6"],
+  "versions": ["1.5", "1.6", "1.7"],
   "architectures": [
     "amd64",
     "arm32v7",
@@ -11,16 +11,20 @@
       "name": "alpine"
     },
     {
-      "name": "data"
+      "name": "data",
+      "versions": ["1.5", "1.6"]
     },
     {
-      "name": "data/alpine"
+      "name": "data/alpine",
+      "versions": ["1.5", "1.6"]
     },
     {
-      "name": "meta"
+      "name": "meta",
+      "versions": ["1.5", "1.6"]
     },
     {
-      "name": "meta/alpine"
+      "name": "meta/alpine",
+      "versions": ["1.5", "1.6"]
     }
   ]
 }
