@@ -11,20 +11,16 @@
       "name": "alpine"
     },
     {
-      "name": "data",
-      "versions": ["1.5", "1.6"]
+      "name": "data"
     },
     {
-      "name": "data/alpine",
-      "versions": ["1.5", "1.6"]
+      "name": "data/alpine"
     },
     {
-      "name": "meta",
-      "versions": ["1.5", "1.6"]
+      "name": "meta"
     },
     {
-      "name": "meta/alpine",
-      "versions": ["1.5", "1.6"]
+      "name": "meta/alpine"
     }
   ]
 }
