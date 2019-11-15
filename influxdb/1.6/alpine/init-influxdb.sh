@@ -11,7 +11,15 @@ fi
 
 INIT_USERS=$([ ! -z "$AUTH_ENABLED" ] && [ ! -z "$INFLUXDB_ADMIN_USER" ] && echo 1 || echo)
 
-if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-entrypoint-initdb.d 2> /dev/null)" ] ) && [ ! "$(ls -d /var/lib/influxdb/meta 2>/dev/null)" ]; then
+# Check if an environment variable for where to put meta is set.
+# If so, then use that directory, otherwise use the default.
+if [ -z "$INFLUXDB_META_DIR" ]; then
+	META_DIR="/var/lib/influxdb/meta"
+else
+	META_DIR="$INFLUXDB_META_DIR"
+fi
+
+if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-entrypoint-initdb.d 2> /dev/null)" ] ) && [ ! "$(ls -d "$META_DIR" 2>/dev/null)" ]; then
 
 	INIT_QUERY=""
 	CREATE_DB_QUERY="CREATE DATABASE $INFLUXDB_DB"
