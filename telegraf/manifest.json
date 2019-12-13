@@ -1,6 +1,6 @@
 {
   "name": "telegraf",
-  "versions": ["1.10", "1.11", "1.12"],
+  "versions": ["1.11", "1.12", "1.13"],
   "architectures": [
     "amd64",
     "arm32v7",
