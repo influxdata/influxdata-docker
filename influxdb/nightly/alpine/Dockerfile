@@ -3,7 +3,7 @@ FROM alpine:3.12
 RUN apk add --no-cache bash
 
 RUN set -ex && \
-    apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
+    apk add --no-cache --virtual .build-deps wget gnupg ca-certificates && \
     update-ca-certificates && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
@@ -16,7 +16,7 @@ RUN set -ex && \
     wget --no-verbose https://dl.influxdata.com/influxdb/nightlies/influxdb-static-nightly_linux_amd64.tar.gz && \
     gpg --batch --verify influxdb-static-nightly_linux_amd64.tar.gz.asc influxdb-static-nightly_linux_amd64.tar.gz && \
     mkdir -p /usr/src && \
-    tar -C /usr/src -xzf influxdb-static-nightly_linux_amd64.tar.gz && \
+    tar -C /usr/src -xf influxdb-static-nightly_linux_amd64.tar.gz && \
     rm -f /usr/src/influxdb-*/influxdb.conf && \
     chmod +x /usr/src/influxdb-*/* && \
     cp -a /usr/src/influxdb-*/* /usr/bin/ && \
