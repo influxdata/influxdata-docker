@@ -23,11 +23,11 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
       armel) ARCH='armel';; \
       *)     echo "Unsupported architecture: ${dpkgArch}"; exit 1;; \
     esac && \
-    wget --no-verbose https://dl.influxdata.com/kapacitor/releases/kapacitor_${KAPACITOR_VERSION}_${ARCH}.deb.asc && \
-    wget --no-verbose https://dl.influxdata.com/kapacitor/releases/kapacitor_${KAPACITOR_VERSION}_${ARCH}.deb && \
-    gpg --batch --verify kapacitor_${KAPACITOR_VERSION}_${ARCH}.deb.asc kapacitor_${KAPACITOR_VERSION}_${ARCH}.deb && \
-    dpkg -i kapacitor_${KAPACITOR_VERSION}_${ARCH}.deb && \
-    rm -f kapacitor_${KAPACITOR_VERSION}_${ARCH}.deb*
+    wget --no-verbose https://dl.influxdata.com/kapacitor/releases/kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb.asc && \
+    wget --no-verbose https://dl.influxdata.com/kapacitor/releases/kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb && \
+    gpg --batch --verify kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb.asc kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb && \
+    dpkg -i kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb && \
+    rm -f kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb*
 COPY kapacitor.conf /etc/kapacitor/kapacitor.conf
 
 EXPOSE 9092
