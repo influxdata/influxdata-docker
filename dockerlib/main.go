@@ -34,8 +34,8 @@ func fetchUpstream() error {
 	return nil
 }
 
-func getDefaultMaintainer() string {
-	return "Jonathan A. Sternberg <jonathan@influxdata.com> (@jsternberg)"
+func getDefaultMaintainers() []string {
+	return []string{"Jonathan A. Sternberg <jonathan@influxdata.com> (@jsternberg)"}
 }
 
 func main() {

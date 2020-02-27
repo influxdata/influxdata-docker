@@ -1,5 +1,9 @@
 {
   "name": "telegraf",
+  "maintainers": [
+    "Jonathan A. Sternberg <jonathan@influxdata.com> (@jsternberg)",
+    "Daniel Nelson <daniel.nelson@influxdata.com> (@danielnelson)"
+  ],
   "versions": ["1.11", "1.12", "1.13"],
   "architectures": [
     "amd64",

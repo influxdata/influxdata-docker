@@ -35,8 +35,13 @@ func Update() error {
 	}
 
 	for _, m := range manifests {
+		if len(m.Maintainers) == 0 {
+			m.Maintainers = getDefaultMaintainers()
+		}
 		header := dockerlib.Header{}
-		header.Add("Maintainers", getDefaultMaintainer())
+		for _, maintainer := range m.Maintainers {
+			header.Add("Maintainers", maintainer)
+		}
 		header.Add("GitRepo", remoteRepo)
 
 		rev, err := latestRev(m.BaseDir)

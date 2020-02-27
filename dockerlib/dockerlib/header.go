@@ -46,9 +46,33 @@ func (h *Header) Set(key, value string) {
 func (h *Header) Write(w io.Writer) error {
 	for front := h.values.Front(); front != nil; front = front.Next() {
 		kv := front.Value.(*keyValuePair)
-		if _, err := fmt.Fprintf(w, "%s: %s\n", kv.key, strings.Join(kv.values, ", ")); err != nil {
+		if kv.key == "Maintainers" {
+			if err := h.writeMaintainers(w, kv.values); err != nil {
+				return err
+			}
+		} else if _, err := fmt.Fprintf(w, "%s: %s\n", kv.key, strings.Join(kv.values, ", ")); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (h *Header) writeMaintainers(w io.Writer, values []string) error {
+	if _, err := fmt.Fprint(w, "Maintainers: "); err != nil {
+		return err
+	}
+	for i, value := range values {
+		if _, err := fmt.Fprintf(w, "%s", value); err != nil {
+			return err
+		}
+		if i < len(values)-1 {
+			if _, err := fmt.Fprint(w, ",\n             "); err != nil {
+				return err
+			}
+		}
+	}
+	if _, err := fmt.Fprintln(w); err != nil {
+		return err
 	}
 	return nil
 }

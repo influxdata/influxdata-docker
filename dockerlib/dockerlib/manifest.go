@@ -14,6 +14,7 @@ import (
 type ImageManifest struct {
 	Name          string     `json:"name"`
 	BaseDir       string     `json:"-"`
+	Maintainers   []string   `json:"maintainers"`
 	Versions      []*Version `json:"versions"`
 	Architectures []string   `json:"architectures"`
 	Variants      []*Variant `json:"variants"`
