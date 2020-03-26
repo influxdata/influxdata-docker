@@ -4,7 +4,7 @@
     "Jonathan A. Sternberg <jonathan@influxdata.com> (@jsternberg)",
     "Daniel Nelson <daniel.nelson@influxdata.com> (@danielnelson)"
   ],
-  "versions": ["1.11", "1.12", "1.13"],
+  "versions": ["1.12", "1.13", "1.14"],
   "architectures": [
     "amd64",
     "arm32v7",
