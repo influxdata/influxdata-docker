@@ -65,8 +65,8 @@ test_default_without_auth_enabled() {
   cleanup
 }
 
-test_default_with_auth_enabled() {
-  log_msg 'Executing test_default_with_auth_enabled'
+test_default_with_auth_enabled_by_true() {
+  log_msg 'Executing test_default_with_auth_enabled_by_true'
   setup '--env INFLUXDB_HTTP_AUTH_ENABLED=true'
 
   assert_contains "$(influx 'SHOW DATABASES' 2> /dev/null)" 'create admin user first or disable authentication' 'test_default_with_auth_enabled: influxdb should not be initialized'
@@ -74,11 +74,20 @@ test_default_with_auth_enabled() {
   cleanup
 }
 
-test_create_db() {
-  log_msg 'Executing test_create_db'
-  setup '--env INFLUXDB_DB=test_db'
+test_default_with_auth_enabled_by_1() {
+  log_msg 'Executing test_default_with_auth_enabled_by_1'
+  setup '--env INFLUXDB_HTTP_AUTH_ENABLED=1'
 
-  assert_contains "$(influx 'SHOW DATABASES')" 'test_db' 'test_create_db: influxdb should contain a test_db database'
+  assert_contains "$(influx 'SHOW DATABASES' 2> /dev/null)" 'create admin user first or disable authentication' 'test_default_with_auth_enabled: influxdb should not be initialized'
+
+  cleanup
+}
+
+test_create_db_with_keyword_name() {
+  log_msg 'Executing test_create_db_with_keyword_name'
+  setup '--env INFLUXDB_DB=database'
+
+  assert_contains "$(influx 'SHOW DATABASES')" 'database' 'test_create_db_with_keyword_name: influxdb should contain a database with name "database"'
 
   cleanup
 }
@@ -186,7 +195,7 @@ test_create_db_on_non_default_port() {
   cleanup
 }
 
-influxdb_dockerfiles=$(find 'influxdb' -name nightly -prune -o -name Dockerfile -print0 | xargs -0 -I{} dirname {} | sed 's@^./@@' | sed 's@//*@/@g')
+influxdb_dockerfiles=$(find 'influxdb' -name nightly -prune -o -name data -prune -o -name meta -prune -o -name Dockerfile -print0 | xargs -0 -I{} dirname {} | sed 's@^./@@' | sed 's@//*@/@g')
 
 for path in $influxdb_dockerfiles; do
   # Generate a tag by replacing the first slash with a colon and all remaining slashes with a dash.
@@ -196,9 +205,11 @@ for path in $influxdb_dockerfiles; do
 
   test_default_without_auth_enabled
 
-  test_default_with_auth_enabled
+  test_default_with_auth_enabled_by_true
 
-  test_create_db
+  test_default_with_auth_enabled_by_1
+
+  test_create_db_with_keyword_name
 
   test_create_admin
 

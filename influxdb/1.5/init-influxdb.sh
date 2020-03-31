@@ -4,9 +4,9 @@ set -e
 AUTH_ENABLED="$INFLUXDB_HTTP_AUTH_ENABLED"
 
 if [ -z "$AUTH_ENABLED" ]; then
-	AUTH_ENABLED="$(grep -iE '^\s*auth-enabled\s*=\s*true' /etc/influxdb/influxdb.conf | grep -io 'true' | cat)"
+	AUTH_ENABLED="$(grep -iE '^\s*auth-enabled\s*=\s*(true|1)' /etc/influxdb/influxdb.conf | grep -ioE '(true|1)' | cat)"
 else
-	AUTH_ENABLED="$(echo "$INFLUXDB_HTTP_AUTH_ENABLED" | grep -io 'true' | cat)"
+	AUTH_ENABLED="$(echo "$INFLUXDB_HTTP_AUTH_ENABLED" | grep -ioE '(true|1)' | cat)"
 fi
 
 INIT_USERS=$([ ! -z "$AUTH_ENABLED" ] && [ ! -z "$INFLUXDB_ADMIN_USER" ] && echo 1 || echo)
@@ -21,7 +21,7 @@ fi
 
 if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-entrypoint-initdb.d 2> /dev/null)" ] ) && [ ! "$(ls -d "$META_DIR" 2>/dev/null)" ]; then
 	INIT_QUERY=""
-	CREATE_DB_QUERY="CREATE DATABASE $INFLUXDB_DB"
+	CREATE_DB_QUERY="CREATE DATABASE \"$INFLUXDB_DB\""
 
 	if [ ! -z "$INIT_USERS" ]; then
 
