@@ -23,7 +23,9 @@ RUN set -ex && \
     chmod +x /usr/src/influxdb-*/* && \
     cp -a /usr/src/influxdb-*/* /usr/bin/ && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
-    apk del .build-deps
+    apk del .build-deps && \
+    addgroup -g 1000 influxdb && \
+    adduser -G influxdb -u 1000 -S -h /var/lib/influxdb influxdb
 COPY influxdb.conf /etc/influxdb/influxdb.conf
 
 EXPOSE 8086
