@@ -1,6 +1,6 @@
 {
   "name": "influxdb",
-  "versions": ["1.5", "1.6", "1.7"],
+  "versions": ["1.7", "1.8"],
   "architectures": [
     "amd64",
     "arm32v7",

@@ -9,7 +9,7 @@ RUN set -ex && \
         gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
     done
 
-ENV INFLUXDB_VERSION 1.6.6
+ENV INFLUXDB_VERSION 1.8.0
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     case "${dpkgArch##*-}" in \
       amd64) ARCH='amd64';; \
