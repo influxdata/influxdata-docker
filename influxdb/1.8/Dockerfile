@@ -2,7 +2,7 @@ FROM buildpack-deps:stretch-curl
 
 RUN set -ex && \
     for key in \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
+        05CE15085FC09D18E99EFB22684A14CF2582E0C5 B42F6819007F00F88E364FD4036A9C25BF357DD4 ; \
     do \
         gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" || \
         gpg --keyserver pgp.mit.edu --recv-keys "$key" || \
@@ -10,6 +10,7 @@ RUN set -ex && \
     done
 
 ENV INFLUXDB_VERSION 1.8.0
+ENV GOSU_VERSION 1.12
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     case "${dpkgArch##*-}" in \
       amd64) ARCH='amd64';; \
@@ -22,7 +23,14 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION}_${ARCH}.deb && \
     gpg --batch --verify influxdb_${INFLUXDB_VERSION}_${ARCH}.deb.asc influxdb_${INFLUXDB_VERSION}_${ARCH}.deb && \
     dpkg -i influxdb_${INFLUXDB_VERSION}_${ARCH}.deb && \
-    rm -f influxdb_${INFLUXDB_VERSION}_${ARCH}.deb*
+    rm -f influxdb_${INFLUXDB_VERSION}_${ARCH}.deb* && \
+    wget --no-verbose https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${ARCH}.asc && \
+    wget --no-verbose https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${ARCH} && \
+    gpg --batch --verify gosu-${ARCH}.asc gosu-${ARCH} && \
+    rm -f gosu-${ARCH}.asc && \
+    mv gosu-${ARCH} /usr/local/bin && \
+    chmod +x /usr/local/bin/gosu-${ARCH} && \
+    ln -s /usr/local/bin/gosu-${ARCH} /usr/local/bin/gosu
 COPY influxdb.conf /etc/influxdb/influxdb.conf
 
 EXPOSE 8086
