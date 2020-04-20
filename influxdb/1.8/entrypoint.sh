@@ -18,7 +18,7 @@ if [ $GROUP_ID != 0 ]; then
   fi
 fi
 
-if [ $USER_ID != 0 -a $(stat -c "%u" /var/lib/influxdb) != $USER_ID ]; then
+if [ $USER_ID != 0 ]; then
   echo "Changing ownership of /var/lib/influxdb to $USER_ID:$GROUP_ID"
   chown -R ${USER_ID}:${GROUP_ID} /var/lib/influxdb
 fi
@@ -30,7 +30,7 @@ if [ "${1:0:1}" = '-' ]; then
 fi
 
 if [ "$1" = 'influxd' ]; then
-	/init-influxdb.sh "${@:2}"
+    /init-influxdb.sh "${@:2}"
 fi
 
 if [ $USER_ID != 0 ]; then
