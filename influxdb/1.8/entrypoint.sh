@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-USER_ID=${USER_ID:-0}
-GROUP_ID=${GROUP_ID:-0}
+USER_ID=${INFLUXDB_RUNAS_USER_ID:-0}
+GROUP_ID=${INFLUXDB_RUNAS_GROUP_ID:-0}
 
 if [ $USER_ID != 0 ]; then
   if [ $USER_ID != $(id -u influxdb) ]; then
