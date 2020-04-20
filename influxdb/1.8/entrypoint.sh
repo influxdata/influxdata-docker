@@ -33,4 +33,8 @@ if [ "$1" = 'influxd' ]; then
 	/init-influxdb.sh "${@:2}"
 fi
 
-exec gosu influxdb "$@"
+if [ $USER_ID != 0 ]; then
+    exec gosu influxdb "$@"
+else
+    exec "$@"
+fi
