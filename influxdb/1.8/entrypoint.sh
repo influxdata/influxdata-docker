@@ -23,6 +23,12 @@ if [ $USER_ID != 0 ]; then
   chown -R ${USER_ID}:${GROUP_ID} /var/lib/influxdb
 fi
 
+if [ $USER_ID != 0 ]; then
+    GOSU_CMD="gosu influxdb"
+else
+    GOSU_CMD=
+fi
+
 echo "Starting influxdb as uid $USER_ID and gid $GROUP_ID"
 
 if [ "${1:0:1}" = '-' ]; then
@@ -30,11 +36,7 @@ if [ "${1:0:1}" = '-' ]; then
 fi
 
 if [ "$1" = 'influxd' ]; then
-    /init-influxdb.sh "${@:2}"
+    $GOSU_CMD /init-influxdb.sh "${@:2}"
 fi
 
-if [ $USER_ID != 0 ]; then
-    exec gosu influxdb "$@"
-else
-    exec "$@"
-fi
+exec $GOSU_CMD "$@"
