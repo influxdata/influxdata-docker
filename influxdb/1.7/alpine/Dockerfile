@@ -5,7 +5,17 @@ RUN apk add --no-cache tzdata bash ca-certificates && \
     update-ca-certificates
 
 ENV INFLUXDB_VERSION 1.7.10
-RUN set -ex && \
+RUN ARCH= && STATIC= && BINLOC= && \
+    unameArch="$(uname -m)" && \
+    case "${unameArch##*-}" in \
+      x86_64) ARCH='amd64';; \
+      aarch64) ARCH='arm64';; \
+      armv7l) ARCH='armhf';; \
+      *)     echo "Unsupported architecture: ${unameArch}"; exit 1;; \
+    esac && \
+    if [ "$ARCH" == "amd64" ]; then STATIC="-static"; fi && \
+    if [ "$ARCH" == "arm64" ] || [ "$ARCH" == "armhf" ]; then BINLOC="usr/bin/"; fi && \
+    set -ex && \
     apk add --no-cache --virtual .build-deps wget gnupg tar && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
@@ -14,14 +24,14 @@ RUN set -ex && \
         gpg --keyserver pgp.mit.edu --recv-keys "$key" || \
         gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
     done && \
-    wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc && \
-    wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
-    gpg --batch --verify influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb-${INFLUXDB_VERSION}${STATIC}_linux_${ARCH}.tar.gz.asc && \
+    wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb-${INFLUXDB_VERSION}${STATIC}_linux_${ARCH}.tar.gz && \
+    gpg --batch --verify influxdb-${INFLUXDB_VERSION}${STATIC}_linux_${ARCH}.tar.gz.asc influxdb-${INFLUXDB_VERSION}${STATIC}_linux_${ARCH}.tar.gz && \
     mkdir -p /usr/src && \
-    tar -C /usr/src -xzf influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    tar -C /usr/src -xzf influxdb-${INFLUXDB_VERSION}${STATIC}_linux_${ARCH}.tar.gz && \
     rm -f /usr/src/influxdb-*/influxdb.conf && \
     chmod +x /usr/src/influxdb-*/* && \
-    cp -a /usr/src/influxdb-*/* /usr/bin/ && \
+    cp -a /usr/src/influxdb-*/${BINLOC}* /usr/bin/ && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
     apk del .build-deps
 COPY influxdb.conf /etc/influxdb/influxdb.conf
