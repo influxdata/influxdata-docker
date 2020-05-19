@@ -43,4 +43,4 @@ workflows:
             parameters:
               image: ["telegraf"]
               variant: ["debian", "alpine"]
-              version: ["1.12.6", "1.13.4", "1.14.2"]
+              version: ["1.12.6", "1.13.4", "1.14.3"]

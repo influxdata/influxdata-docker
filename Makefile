@@ -20,4 +20,4 @@ CONTEXT=./$(IMAGE)/$(MAJORMINORVERSION)/$(VARIANT)
 endif
 
 build-image:
-	@docker image build --no-cache -f $(CONTEXT)/Dockerfile $(CONTEXT)
+	@docker image build --build-arg VERSION=$(VERSION) --no-cache -f $(CONTEXT)/Dockerfile $(CONTEXT)

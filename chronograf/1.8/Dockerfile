@@ -11,7 +11,9 @@ RUN set -ex && \
         gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
     done
 
-ENV CHRONOGRAF_VERSION 1.8.4
+ARG VERSION
+ENV CHRONOGRAF_VERSION ${VERSION}
+
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     case "${dpkgArch##*-}" in \
       amd64) ARCH='amd64';; \

@@ -4,7 +4,8 @@ RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache ca-certificates && \
     update-ca-certificates
 
-ENV CHRONOGRAF_VERSION 1.7.17
+ARG VERSION
+ENV CHRONOGRAF_VERSION ${VERSION}
 
 RUN set -ex && \
     apk add --no-cache --virtual .build-deps wget gnupg tar && \
