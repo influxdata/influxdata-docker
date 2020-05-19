@@ -2,8 +2,10 @@ FROM alpine:3.9
 
 RUN apk add --no-cache bash
 
+# We always use `--update` on the first `apk` command to ensure
+# our indices are up to date with the remote repository.
 RUN set -ex && \
-    apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
+    apk add --update --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     update-ca-certificates && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \

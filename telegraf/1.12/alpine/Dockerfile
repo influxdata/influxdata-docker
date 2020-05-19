@@ -1,7 +1,9 @@
 FROM alpine:3.9
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata && \
+# We always use `--update` on the first `apk` command to ensure
+# our indices are up to date with the remote repository.
+RUN apk add --update --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata && \
     update-ca-certificates
 
 ENV TELEGRAF_VERSION 1.12.6

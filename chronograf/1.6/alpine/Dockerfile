@@ -1,7 +1,9 @@
 FROM alpine:3.9
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache ca-certificates && \
+# We always use `--update` on the first `apk` command to ensure
+# our indices are up to date with the remote repository.
+RUN apk add --update --no-cache ca-certificates && \
     update-ca-certificates
 
 ENV CHRONOGRAF_VERSION 1.6.2
