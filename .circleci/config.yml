@@ -1,10 +1,46 @@
-version: 2
+version: 2.1
 jobs:
-  build:
+  build-image:
+    parameters:
+      image:
+        type: string
+      variant:
+        type: string
+      version:
+        type: string
     docker:
       - image: circleci/golang:1.11
     working_directory: /go/src/github.com/influxdata/influxdata-docker
     steps:
       - checkout
-      - setup_remote_docker
-      - run: bash circle-test.sh
+      - setup_remote_docker:
+          docker_layer_caching: false
+      - run: make build-image IMAGE=<< parameters.image >> VARIANT=<< parameters.variant >> VERSION=<< parameters.version >>
+  
+workflows:
+  build-image:
+    jobs:
+      - build-image:
+          matrix:
+            parameters:
+              image: ["chronograf"]
+              variant: ["debian", "alpine"]
+              version: ["1.6.2", "1.7.17", "1.8.4"]
+      - build-image:
+          matrix:
+            parameters:
+              image: ["influxdb"]
+              variant: ["debian", "alpine"]
+              version: ["1.7.10", "1.8.0", "nightly"]
+      - build-image:
+          matrix:
+            parameters:
+              image: ["kapacitor"]
+              variant: ["debian", "alpine"]
+              version: ["1.4.1", "1.5.4"]
+      - build-image:
+          matrix:
+            parameters:
+              image: ["telegraf"]
+              variant: ["debian", "alpine"]
+              version: ["1.12.6", "1.13.4", "1.14.2"]
