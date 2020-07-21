@@ -23,6 +23,7 @@ RUN set -ex && \
     rm -f /usr/src/chronograf-*/chronograf.conf && \
     chmod +x /usr/src/chronograf-*/* && \
     cp -a /usr/src/chronograf-*/* /usr/bin/ && \
+    gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
     apk del .build-deps
 

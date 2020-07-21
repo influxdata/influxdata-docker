@@ -23,6 +23,7 @@ RUN set -ex && \
     rm -f /usr/src/kapacitor-*/kapacitor.conf && \
     chmod +x /usr/src/kapacitor-*/* && \
     cp -a /usr/src/kapacitor-*/* /usr/bin/ && \
+    gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
     apk del .build-deps
 COPY kapacitor.conf /etc/kapacitor/kapacitor.conf

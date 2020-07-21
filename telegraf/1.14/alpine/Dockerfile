@@ -23,6 +23,7 @@ RUN set -ex && \
     mv /usr/src/telegraf*/telegraf.conf /etc/telegraf/ && \
     chmod +x /usr/src/telegraf*/* && \
     cp -a /usr/src/telegraf*/* /usr/bin/ && \
+    gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
     apk del .build-deps
 
