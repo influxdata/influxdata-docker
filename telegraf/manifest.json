@@ -2,7 +2,9 @@
   "name": "telegraf",
   "maintainers": [
     "Jonathan A. Sternberg <jonathan@influxdata.com> (@jsternberg)",
-    "Daniel Nelson <daniel.nelson@influxdata.com> (@danielnelson)"
+    "Daniel Nelson <daniel.nelson@influxdata.com> (@danielnelson)",
+    "David Reimschussel <dreimschussel@influxdata.com> (@reimda)",
+    "Steven Soroka <ssoroka@influxdata.com> (@ssoroka)"
   ],
   "versions": ["1.12", "1.13", "1.14"],
   "architectures": [
