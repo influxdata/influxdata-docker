@@ -6,7 +6,7 @@
     "David Reimschussel <dreimschussel@influxdata.com> (@reimda)",
     "Steven Soroka <ssoroka@influxdata.com> (@ssoroka)"
   ],
-  "versions": ["1.12", "1.13", "1.14"],
+  "versions": ["1.13", "1.14", "1.15"],
   "architectures": [
     "amd64",
     "arm32v7",
