@@ -30,6 +30,7 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
 
 EXPOSE 8125/udp 8092/udp 8094
 
+USER telegraf
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["telegraf"]
