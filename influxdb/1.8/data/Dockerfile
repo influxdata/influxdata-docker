@@ -1,20 +1,41 @@
-FROM buildpack-deps:stretch-curl
+FROM debian:buster-slim
 
-RUN set -ex && \
+ENV INFLUXDB_VERSION 1.8.2-c1.8.2
+
+RUN set -ex; \
+    fetchDeps=" \
+        ca-certificates \
+        gnupg \
+        dirmngr \
+        wget \
+    "; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends $fetchDeps; \
+    \
+    ARCH= && dpkgArch="$(dpkg --print-architecture)"; \
+    case "${dpkgArch##*-}" in \
+        amd64) ARCH='amd64';; \
+        *)     echo "Unsupported architecture: ${dpkgArch}"; exit 1;; \
+    esac; \
+    \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
     do \
-        gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" || \
-        gpg --keyserver pgp.mit.edu --recv-keys "$key" || \
-        gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
-    done
+        gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" || \
+        gpg --batch --keyserver pgp.mit.edu --recv-keys "$key" || \
+        gpg --batch --keyserver keyserver.pgp.com --recv-keys "$key" ; \
+    done; \
+    \
+    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-data_${INFLUXDB_VERSION}_${ARCH}.deb.asc; \
+    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-data_${INFLUXDB_VERSION}_${ARCH}.deb; \
+    gpg --batch --verify influxdb-data_${INFLUXDB_VERSION}_${ARCH}.deb.asc influxdb-data_${INFLUXDB_VERSION}_${ARCH}.deb; \
+    dpkg -i influxdb-data_${INFLUXDB_VERSION}_${ARCH}.deb; \
+    gpgconf --kill all; \
+    rm -f "$GNUPGHOME" influxdb-data_${INFLUXDB_VERSION}_${ARCH}.deb*; \
+    \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $fetchDeps; \
+    rm -rf /var/lib/apt/lists/*
 
-ENV INFLUXDB_VERSION 1.8.2-c1.8.2
-RUN wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-data_${INFLUXDB_VERSION}_amd64.deb.asc && \
-    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-data_${INFLUXDB_VERSION}_amd64.deb && \
-    gpg --batch --verify influxdb-data_${INFLUXDB_VERSION}_amd64.deb.asc influxdb-data_${INFLUXDB_VERSION}_amd64.deb && \
-    dpkg -i influxdb-data_${INFLUXDB_VERSION}_amd64.deb && \
-    rm -f influxdb-data_${INFLUXDB_VERSION}_amd64.deb*
 COPY influxdb.conf /etc/influxdb/influxdb.conf
 
 EXPOSE 8086
