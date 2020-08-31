@@ -7,7 +7,7 @@ RUN apk add --no-cache ca-certificates && \
 ENV CHRONOGRAF_VERSION 1.6.2
 
 RUN set -ex && \
-    apk add --no-cache --virtual .build-deps wget gnupg tar && \
+    apk add --no-cache --virtual .build-deps gnupg && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
     do \
@@ -15,11 +15,11 @@ RUN set -ex && \
         gpg --keyserver pgp.mit.edu --recv-keys "$key" || \
         gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
     done && \
-    wget --no-verbose https://dl.influxdata.com/chronograf/releases/chronograf-${CHRONOGRAF_VERSION}-static_linux_amd64.tar.gz.asc && \
-    wget --no-verbose https://dl.influxdata.com/chronograf/releases/chronograf-${CHRONOGRAF_VERSION}-static_linux_amd64.tar.gz && \
+    wget -q https://dl.influxdata.com/chronograf/releases/chronograf-${CHRONOGRAF_VERSION}-static_linux_amd64.tar.gz.asc && \
+    wget -q https://dl.influxdata.com/chronograf/releases/chronograf-${CHRONOGRAF_VERSION}-static_linux_amd64.tar.gz && \
     gpg --batch --verify chronograf-${CHRONOGRAF_VERSION}-static_linux_amd64.tar.gz.asc chronograf-${CHRONOGRAF_VERSION}-static_linux_amd64.tar.gz && \
     mkdir -p /usr/src && \
-    tar -C /usr/src -xzf chronograf-${CHRONOGRAF_VERSION}-static_linux_amd64.tar.gz && \
+    tar -C /usr/src -xf chronograf-${CHRONOGRAF_VERSION}-static_linux_amd64.tar.gz && \
     rm -f /usr/src/chronograf-*/chronograf.conf && \
     chmod +x /usr/src/chronograf-*/* && \
     cp -a /usr/src/chronograf-*/* /usr/bin/ && \
