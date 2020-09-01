@@ -3,7 +3,7 @@ FROM debian:stretch-slim
 RUN set -ex && \
     mkdir ~/.gnupg; \
     echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
-    apt-get update && apt-get install -y gpg dirmngr --no-install-recommends && \
+    apt-get update && apt-get install -y gnupg ca-certificates dirmngr --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
@@ -13,7 +13,7 @@ RUN set -ex && \
         gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
     done
 
-ENV CHRONOGRAF_VERSION 1.8.4
+ENV CHRONOGRAF_VERSION 1.8.6
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     case "${dpkgArch##*-}" in \
       amd64) ARCH='amd64';; \
