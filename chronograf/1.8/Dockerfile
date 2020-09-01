@@ -1,6 +1,8 @@
 FROM debian:stretch-slim
 
 RUN set -ex && \
+    mkdir ~/.gnupg; \
+    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
     apt-get update && apt-get install -y gpg dirmngr --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* && \
     for key in \

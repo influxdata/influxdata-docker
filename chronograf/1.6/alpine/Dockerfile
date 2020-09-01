@@ -7,6 +7,8 @@ RUN apk add --no-cache ca-certificates && \
 ENV CHRONOGRAF_VERSION 1.6.2
 
 RUN set -ex && \
+    mkdir ~/.gnupg; \
+    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
     apk add --no-cache --virtual .build-deps wget gnupg tar && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
