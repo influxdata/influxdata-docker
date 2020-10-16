@@ -22,7 +22,14 @@ fi
 if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-entrypoint-initdb.d 2> /dev/null)" ] ) && [ ! "$(ls -d "$META_DIR" 2>/dev/null)" ]; then
 
 	INIT_QUERY=""
-	CREATE_DB_QUERY="CREATE DATABASE $INFLUXDB_DB"
+
+	# Check if an environment variable for database retention policy is set.
+	# If so, then initalize database with the specified retention policy, otherwise use the default.
+	if [ -z "$INFLUXDB_DB_RETENTION_POLICY" ]; then
+		CREATE_DB_QUERY="CREATE DATABASE $INFLUXDB_DB"
+	else
+		CREATE_DB_QUERY="CREATE DATABASE $INFLUXDB_DB $INFLUXDB_DB_RETENTION_POLICY"
+	fi
 
 	if [ ! -z "$INIT_USERS" ]; then
 
