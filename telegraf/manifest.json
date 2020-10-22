@@ -1,8 +1,6 @@
 {
   "name": "telegraf",
   "maintainers": [
-    "Jonathan A. Sternberg <jonathan@influxdata.com> (@jsternberg)",
-    "Daniel Nelson <daniel.nelson@influxdata.com> (@danielnelson)",
     "David Reimschussel <dreimschussel@influxdata.com> (@reimda)",
     "Steven Soroka <ssoroka@influxdata.com> (@ssoroka)"
   ],
