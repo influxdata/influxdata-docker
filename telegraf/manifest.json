@@ -4,13 +4,19 @@
     "David Reimschussel <dreimschussel@influxdata.com> (@reimda)",
     "Steven Soroka <ssoroka@influxdata.com> (@ssoroka)"
   ],
-  "versions": ["1.14", "1.15", "1.16"],
+  "versions": [
+    "1.15",
+    "1.16",
+    "1.17"
+  ],
   "architectures": [
     "amd64",
     "arm32v7",
     "arm64v8"
   ],
   "variants": [
-    {"name": "alpine"}
+    {
+      "name": "alpine"
+    }
   ]
 }
