@@ -1,7 +1,7 @@
 FROM alpine:3.12
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata && \
+RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors smartmontools tzdata && \
     update-ca-certificates
 
 ENV TELEGRAF_VERSION 1.16.3
