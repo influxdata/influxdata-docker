@@ -1,10 +1,12 @@
-FROM buildpack-deps:stretch-curl
+FROM buildpack-deps:buster-curl
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends iputils-ping snmp procps lm-sensors && \
     rm -rf /var/lib/apt/lists/*
 
 RUN set -ex && \
+    mkdir ~/.gnupg; \
+    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
     do \
@@ -13,7 +15,7 @@ RUN set -ex && \
         gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
     done
 
-ENV TELEGRAF_VERSION 1.14.5
+ENV TELEGRAF_VERSION 1.17.0
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     case "${dpkgArch##*-}" in \
       amd64) ARCH='amd64';; \
