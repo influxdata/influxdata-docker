@@ -669,15 +669,15 @@ function test_2x_auto_upgrade () {
     fi
 
     log_msg Checking bucket list post-upgrade
-    local buckets=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/api/v2/buckets | jq -r .buckets[].name | LC_COLLATE=en_US.UTF-8 sort))
-    if [[ $(join_array ${buckets[@]}) != "_monitoring,_tasks,bucket,empty/autogen,mydb/1week,mydb/autogen,test/autogen" ]]; then
+    local buckets=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/api/v2/buckets | jq -r .buckets[].name | sort -d))
+    if [[ $(join_array ${buckets[@]}) != "bucket,empty/autogen,_monitoring,mydb/1week,mydb/autogen,_tasks,test/autogen" ]]; then
         log_msg Error: Bad bucket list post-upgrade
         echo ${buckets[@]}
         return 1
     fi
 
     log_msg Checking V1 user list post-upgrade
-    local users=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/private/legacy/authorizations | jq -r .authorizations[].token | sort))
+    local users=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/private/legacy/authorizations | jq -r .authorizations[].token | sort -d))
     if [[ $(join_array ${users[@]}) != "reader,readerwriter,writer" ]]; then
         log_msg Error: Bad user list post-upgrade
         echo ${users[@]}
