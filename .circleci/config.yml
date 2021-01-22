@@ -24,3 +24,6 @@ jobs:
       - setup_remote_docker
       - run: sudo apt-get update && sudo apt-get install -y jq
       - run: bash influxdb/circle-test.sh
+      - store_artifacts:
+          path: influxdb/test-logs
+          destination: container-logs

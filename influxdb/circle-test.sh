@@ -4,6 +4,7 @@ set -eo pipefail
 declare -r SCRIPT_DIR=$(cd $(dirname $0) >/dev/null 2>&1 && pwd)
 
 declare -r TMP=${SCRIPT_DIR}/test-tmp
+declare -r LOGS=${SCRIPT_DIR}/test-logs
 
 #####################
 ##### UTILITIES #####
@@ -148,7 +149,7 @@ function test_2x_simple_boot () {
     # Destroy the container
     log_msg Tearing down 2.x container
     docker stop ${container_name} > /dev/null
-    docker logs ${container_name} > ${TMP}/test_2x_simple_boot/init-docker-stdout.log 2> ${TMP}/test_2x_simple_boot/init-docker-stderr.log
+    docker logs ${container_name} > ${LOGS}/test_2x_simple_boot/init-docker-stdout.log 2> ${LOGS}/test_2x_simple_boot/init-docker-stderr.log
     docker rm ${container_name} > /dev/null
 
     # Check that files were persisted to the host.
@@ -267,13 +268,14 @@ function main () {
 
     for tc in ${TEST_CASES[@]}; do
         log_msg Running test ${tc}...
+        mkdir -p ${LOGS}/${tc}
         set +e
         (set -e; ${tc} ${suffix})
         local test_status=$?
         set -e
         if ((test_status)); then
             failed_tests+=(${tc})
-            docker logs ${tc}_${suffix} > ${TMP}/${tc}/docker-stdout.log 2> ${TMP}/${tc}/docker-stderr.log
+            docker logs ${tc}_${suffix} > ${LOGS}/${tc}/docker-stdout.log 2> ${LOGS}/${tc}/docker-stderr.log
         fi
         # Assume a naming convention across tests.
         log_msg Cleaning up test ${tc}...
