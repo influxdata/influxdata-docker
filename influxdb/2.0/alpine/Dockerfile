@@ -1,7 +1,11 @@
-FROM buildpack-deps:buster-curl
+FROM alpine:3.13
 
-RUN groupadd -r influxdb --gid=1000 && \
-    useradd -r -g influxdb --uid=1000 --home-dir=/home/influxdb --shell=/bin/bash influxdb && \
+RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
+RUN apk add --no-cache tzdata bash ca-certificates gnupg && \
+    update-ca-certificates
+
+RUN addgroup -S -g 1000 influxdb && \
+    adduser -S -G influxdb -u 1000 -h /home/influxdb -s /bin/sh influxdb && \
     mkdir -p /home/influxdb && \
     chown -R influxdb:influxdb /home/influxdb
 
@@ -9,27 +13,36 @@ RUN groupadd -r influxdb --gid=1000 && \
 # https://github.com/tianon/gosu/releases
 ENV GOSU_VERSION 1.12
 RUN set -eux; \
-	dpkgArch="$(dpkg --print-architecture)" && \
-	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" && \
-	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc" && \
-	export GNUPGHOME="$(mktemp -d)" && \
-	gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 && \
-	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu && \
-	gpgconf --kill all && \
-	rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc && \
-	chmod +x /usr/local/bin/gosu && \
-	gosu --version && \
+    ARCH=$(arch) && \
+    if [ ${ARCH} = x86_64 ]; then \
+        ARCH=amd64; \
+    elif [ ${ARCH} = aarch64 ]; then \
+        ARCH=arm64; \
+    else \
+        echo "Unsupported architecture: ${ARCH}" && exit 1; \
+    fi && \
+	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$ARCH"; \
+	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$ARCH.asc"; \
+	export GNUPGHOME="$(mktemp -d)"; \
+	gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
+	gpgconf --kill all; \
+	rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc; \
+	chmod +x /usr/local/bin/gosu; \
+	gosu --version; \
 	gosu nobody true
 
 # ENV INFLUXDB_VERSION 2.0.4
 # TODO: Update this to use a 'real' release.
 RUN set -eux && \
-    ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
-    case "${dpkgArch##*-}" in \
-        amd64) ARCH='amd64';; \
-        arm64) ARCH='arm64';; \
-        *)     echo "Unsupported architecture: ${dpkgArch}"; exit 1;; \
-    esac && \
+    ARCH=$(arch) && \
+    if [ ${ARCH} = x86_64 ]; then \
+        ARCH=amd64; \
+    elif [ ${ARCH} = aarch64 ]; then \
+        ARCH=arm64; \
+    else \
+        echo "Unsupported architecture: ${ARCH}" && exit 1; \
+    fi && \
     wget --no-verbose https://dl.influxdata.com/platform/nightlies/influxdb2_nightly_linux_${ARCH}.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/platform/nightlies/influxdb2_nightly_linux_${ARCH}.tar.gz && \
     export GNUPGHOME="$(mktemp -d)" && \
