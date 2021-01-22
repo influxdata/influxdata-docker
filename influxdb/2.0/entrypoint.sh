@@ -49,6 +49,25 @@ function set_config_path () {
     export INFLUXD_CONFIG_PATH=${config_path}
 }
 
+function create_directories () {
+    local -r bolt_path=$(influxd print-config --key-name bolt-path ${@})
+    local -r bolt_dir=$(dirname ${bolt_path})
+    local -r engine_path=$(influxd print-config --key-name engine-path ${@})
+    local user=$(id -u)
+
+    mkdir -p ${bolt_dir} ${engine_path}
+    chmod 700 ${bolt_dir} ${engine_path} || :
+
+    mkdir -p ${CONFIG_VOLUME} || :
+    chmod 775 ${CONFIG_VOLUME} || :
+
+    if [ ${user} = 0 ]; then
+        find ${bolt_dir} \! -user influxdb -exec chown influxdb '{}' +
+        find ${engine_path} \! -user influxdb -exec chown influxdb '{}' +
+        find ${CONFIG_VOLUME} \! -user influxdb -exec chown influxdb '{}' +
+    fi
+}
+
 # Ensure all env vars required to run influx setup or influxd upgrade are set in the env.
 function ensure_init_vars_set () {
     local missing_some=0
@@ -222,6 +241,13 @@ function influxd_main () {
 function main () {
     # Ensure INFLUXD_CONFIG_PATH is set.
     set_config_path
+    # Ensure volume directories exist w/ correct permissions.
+    create_directories
+
+    if [ $(id -u) = 0 ]; then
+        exec gosu influxdb "$BASH_SOURCE" ${@}
+        return
+    fi
 
     if [[ $# = 0 || "${1:0:1}" = '-' ]]; then
         # No command given, assume influxd.

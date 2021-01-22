@@ -91,6 +91,7 @@ function test_2x_simple_boot () {
     # First, run the container against the empty data dir.
     log_msg Booting 2.x container with no setup logic
     if ! docker run -i -d --name=${container_name} \
+        -u $(id -u):influxdb \
         -p 8086:8086 \
         -v ${TMP}/test_2x_simple_boot/data:/var/lib/influxdb2 \
         -v ${TMP}/test_2x_simple_boot/config:/etc/influxdb2 \
