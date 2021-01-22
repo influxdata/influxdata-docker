@@ -33,7 +33,7 @@ function log () {
 
 # Search for a V2 config file, and export its path into the env for influxd to use.
 function set_config_path () {
-    local config_path=${CONFIG_VOLUME}/default-config.yml
+    local config_path=/etc/defaults/influxdb2/config.yml
 
     if [ -n "$INFLUXD_CONFIG_PATH" ]; then
         config_path=${INFLUXD_CONFIG_PATH}
@@ -205,7 +205,6 @@ function init_influxd () {
 
 # Run influxd, with optional setup logic.
 function influxd_main () {
-    set_config_path
     local -r bolt_path=$(influxd print-config --key-name bolt-path ${@})
     local -r engine_path=$(influxd print-config --key-name engine-path ${@})
 
@@ -221,6 +220,9 @@ function influxd_main () {
 }
 
 function main () {
+    # Ensure INFLUXD_CONFIG_PATH is set.
+    set_config_path
+
     if [[ $# = 0 || "${1:0:1}" = '-' ]]; then
         # No command given, assume influxd.
         influxd_main ${@}

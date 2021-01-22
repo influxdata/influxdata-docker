@@ -45,7 +45,7 @@ EXPOSE 8086
 VOLUME /etc/influxdb2 /var/lib/influxdb2
 ENV INFLUX_CONFIGS_PATH /etc/influxdb2/influx-configs
 
-COPY default-config.yml /etc/influxdb2/
+COPY default-config.yml /etc/defaults/influxdb2/config.yml
 COPY entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

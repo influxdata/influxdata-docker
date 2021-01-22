@@ -88,7 +88,7 @@ function test_2x_simple_boot () {
     log_msg Booting 2.x container with no setup logic
     if ! docker run -i -d --name=${container_name} \
         -p 8086:8086 \
-        -v ${TMP}/test_2x_simple_boot/data:/var/lib/influxdb2/test_2x_simple_boot \
+        -v ${TMP}/test_2x_simple_boot/data:/var/lib/influxdb2 \
         -v ${TMP}/test_2x_simple_boot/config:/etc/influxdb2 \
         influxdb:2.0-${1} > /dev/null; then
         log_msg Error: failed to launch container
@@ -152,7 +152,7 @@ function test_2x_simple_boot () {
     docker rm ${container_name} > /dev/null
 
     # Check that files were persisted to the host.
-    if [ ! -f ${TMP}/test_2x_simple_boot/data/influxdb.bolt ]; then
+    if [ ! -f ${TMP}/test_2x_simple_boot/data/influxd.bolt ]; then
         log_msg Error: BoltDB not persisted to host directory
         return 1
     fi
@@ -165,7 +165,7 @@ function test_2x_simple_boot () {
     log_msg Booting another 2.x container
     if ! docker run -i -d --name=${container_name} \
         -p 8086:8086 \
-        -v ${TMP}/test_2x_simple_boot/data:/var/lib/influxdb2/test_2x_simple_boot \
+        -v ${TMP}/test_2x_simple_boot/data:/var/lib/influxdb2 \
         -v ${TMP}/test_2x_simple_boot/config:/etc/influxdb2 \
         influxdb:2.0-${1} > /dev/null; then
         log_msg Error: failed to launch container
