@@ -90,6 +90,34 @@ declare -r TEST_ORG=org
 declare -r TEST_BUCKET=bucket
 declare -r TEST_RETENTION_SECONDS=604800
 
+declare -r TEST_V1_DB=telegraf
+declare -r TEST_V1_RP=autogen
+declare -r TEST_V1_USER=v1-reader
+declare -r TEST_V1_PASSWORD=v1-password
+declare -r TEST_CREATE_DBRP_SCRIPT=$(cat <<EOF
+#!/bin/bash
+set -e
+
+influx v1 dbrp create \
+  --bucket-id \$INFLUXDB_INIT_BUCKET_ID \
+  --db ${TEST_V1_DB} \
+  --rp ${TEST_V1_RP} \
+  --default \
+  --org \$INFLUXDB_INIT_ORG
+EOF
+)
+declare -r TEST_CREATE_V1_AUTH_SCRIPT=$(cat <<EOF
+#!/bin/bash
+set -e
+
+influx v1 auth create \
+  --username ${TEST_V1_USER} \
+  --password ${TEST_V1_PASSWORD} \
+  --read-bucket \$INFLUXDB_INIT_BUCKET_ID \
+  --org \$INFLUXDB_INIT_ORG
+EOF
+)
+
 function test_2x_simple_boot () {
     local -r tag=$1 container_name=$2 data=$3 config=$4 logs=$5
 
@@ -544,9 +572,51 @@ function test_2x_auto_setup_custom_config () {
 }
 
 function test_2x_auto_setup_user_scripts () {
-    local -r tag=$1 container_name=$2 data=$3 config=$4 logs=$5
+    local -r tag=$1 container_name=$2 data=$3 config=$4 logs=$5 scripts=$6
 
-    echo 'hola'
+    echo "$TEST_CREATE_DBRP_SCRIPT" > ${scripts}/1-create-dbrp.sh
+    echo "$TEST_CREATE_V1_AUTH_SCRIPT" > ${scripts}/2-create-v1-auth.sh
+    chmod +x ${scripts}/1-create-dbrp.sh
+    chmod +x ${scripts}/2-create-v1-auth.sh
+
+    local -ra docker_run_influxd=(
+        docker run -i -d
+        --name=${container_name}
+        -u $(id -u):influxdb
+        -p 8086:8086
+        -v ${data}:/var/lib/influxdb2
+        -v ${config}:/etc/influxdb2
+        -v ${scripts}:/docker-entrypoint-initdb.d
+        -e INFLUXDB_INIT_MODE=setup
+        -e INFLUXDB_INIT_USERNAME=${TEST_USER}
+        -e INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
+        -e INFLUXDB_INIT_ORG=${TEST_ORG}
+        -e INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
+        influxdb:${tag}
+    )
+
+    log_msg Booting 2.x container in setup mode
+    if ! ${docker_run_influxd[@]} > /dev/null; then
+        log_msg Error: Failed to launch container
+        return 1
+    fi
+    wait_for_setup ${container_name}
+
+    log_msg Checking we can read from V1 API
+    local -ra curl_v1=(
+        curl -s
+        -u ${TEST_V1_USER}:${TEST_V1_PASSWORD}
+        --data-urlencode db=${TEST_V1_DB}
+        --data-urlencode rp=${TEST_V1_RP}
+        --data-urlencode q='SHOW MEASUREMENTS'
+        localhost:8086/query
+    )
+    local -r measurements=$("${curl_v1[@]}" | jq -r .results[].statement_id)
+    if [[ "${measurements}" != 0 ]]; then
+        log_msg Got unexpected response from V1 API
+        echo ${measurements}
+        return 1
+    fi
 }
 
 function test_2x_auto_upgrade () {
@@ -611,11 +681,12 @@ function main () {
         local data=${TMP}/${tc}/data
         local config=${TMP}/${tc}/config
         local logs=${LOGS}/${tc}
+        local scripts=${TMP}/${tc}/scripts
 
-        mkdir -p ${data} ${config} ${logs}
+        mkdir -p ${data} ${config} ${logs} ${scripts}
         log_msg Running test ${tc}...
         set +e
-        (set -eo pipefail; ${tc} ${tag} ${container} ${data} ${config} ${logs})
+        (set -eo pipefail; ${tc} ${tag} ${container} ${data} ${config} ${logs} ${scripts})
         local test_status=$?
         set -e
         if ((test_status)); then
