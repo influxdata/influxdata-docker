@@ -230,7 +230,7 @@ function test_2x_simple_boot () {
     log_msg Checking org list after recreating container
     local orgs=$(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/api/v2/orgs | jq -r .orgs[].name)
     if [[ ${orgs} != ${TEST_ORG} ]]; then
-        log_msg Error: Bad org list post-setup
+        log_msg Error: Bad org list after recreating container
         echo ${orgs}
         return 1
     fi
@@ -238,7 +238,7 @@ function test_2x_simple_boot () {
     log_msg Checking bucket list after recreating container
     local buckets=$(curl -s -H "Authorization: Token ${auth_token}" "localhost:8086/api/v2/buckets?name=${TEST_BUCKET}" | jq -r .buckets[].name)
     if [[ ${buckets} != ${TEST_BUCKET} ]]; then
-        log_msg Error: Bad bucket list post-setup
+        log_msg Error: Bad bucket list after recreating container
         echo ${buckets}
         return 1
     fi
@@ -663,7 +663,7 @@ function test_2x_auto_upgrade () {
     log_msg Checking org list post-upgrade
     local orgs=$(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/api/v2/orgs | jq -r .orgs[].name)
     if [[ ${orgs} != ${TEST_ORG} ]]; then
-        log_msg Error: Bad org list post-setup
+        log_msg Error: Bad org list post-upgrade
         echo ${orgs}
         return 1
     fi
@@ -680,6 +680,55 @@ function test_2x_auto_upgrade () {
     local users=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/private/legacy/authorizations | jq -r .authorizations[].token | sort -d))
     if [[ $(join_array ${users[@]}) != "reader,readerwriter,writer" ]]; then
         log_msg Error: Bad user list post-upgrade
+        echo ${users[@]}
+        return 1
+    fi
+
+    log_msg Tearing down 2.x container
+    docker stop ${container_name} > /dev/null
+    docker logs ${container_name} > ${logs}/init-docker-stdout.log 2> ${logs}/init-docker-stderr.log
+    docker rm ${container_name} > /dev/null
+
+    if [ ! -f ${data}/influxd.bolt ]; then
+        log_msg Error: BoltDB not persisted to host directory
+        return 1
+    fi
+
+    log_msg Booting another 2.x container
+    if ! ${docker_run_influxd[@]} > /dev/null; then
+        log_msg Error: failed to launch container
+        return 1
+    fi
+    wait_for_startup ${container_name}
+
+    log_msg Checking onboarding API after recreating container
+    onboarding_allowed=$(curl -s localhost:8086/api/v2/setup | jq .allowed)
+
+    if [[ ${onboarding_allowed} != 'false' ]]; then
+        log_msg Error: Onboarding allowed after recreating container
+        return 1
+    fi
+
+    log_msg Checking org list after recreating container
+    local orgs=$(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/api/v2/orgs | jq -r .orgs[].name)
+    if [[ ${orgs} != ${TEST_ORG} ]]; then
+        log_msg Error: Bad org list after recreating container
+        echo ${orgs}
+        return 1
+    fi
+
+    log_msg Checking bucket list after recreating container
+    local buckets=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/api/v2/buckets | jq -r .buckets[].name | sort -d))
+    if [[ $(join_array ${buckets[@]}) != "bucket,empty/autogen,_monitoring,mydb/1week,mydb/autogen,_tasks,test/autogen" ]]; then
+        log_msg Error: Bad bucket list after recreating container
+        echo ${buckets[@]}
+        return 1
+    fi
+
+    log_msg Checking V1 user list after recreating container
+    local users=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/private/legacy/authorizations | jq -r .authorizations[].token | sort -d))
+    if [[ $(join_array ${users[@]}) != "reader,readerwriter,writer" ]]; then
+        log_msg Error: Bad user list after recreating container
         echo ${users[@]}
         return 1
     fi
