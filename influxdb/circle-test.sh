@@ -669,7 +669,7 @@ function test_2x_auto_upgrade () {
     fi
 
     log_msg Checking bucket list post-upgrade
-    local buckets=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/api/v2/buckets | jq -r .buckets[].name | sort))
+    local buckets=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/api/v2/buckets | jq -r .buckets[].name | LC_COLLATE=en_US.UTF-8 sort))
     if [[ $(join_array ${buckets[@]}) != "_monitoring,_tasks,bucket,empty/autogen,mydb/1week,mydb/autogen,test/autogen" ]]; then
         log_msg Error: Bad bucket list post-upgrade
         echo ${buckets[@]}
