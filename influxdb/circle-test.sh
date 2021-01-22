@@ -737,13 +737,164 @@ function test_2x_auto_upgrade () {
 function test_2x_auto_upgrade_custom_config () {
     local -r tag=$1 container_name=$2 data=$3 config=$4 logs=$5
 
-    echo 'hola'
+    log_msg Getting default config
+    if ! docker run --rm influxdb:${tag} influxd print-config > ${config}/default-config.yml; then
+        log_msg Error: Failed to extract default config
+        return 1
+    fi
+    sed 's#/var/lib/influxdb2#/home/influxdb/influxdb2#g' ${config}/default-config.yml > ${config}/config.yml
+
+    local -r v1_config=${TMP}/test_2x_auto_upgrade_custom_config-v1.conf
+    cat > ${v1_config} <<'EOF'
+[meta]
+  dir = "/home/influxdb/v1/meta"
+
+[data]
+  dir = "/home/influxdb/v1/data"
+  engine = "tsm1"
+  wal-dir = "/home/influxdb/v1/wal"
+EOF
+
+    local -ra docker_run_influxd=(
+        docker run -i -d
+        --name=${container_name}
+        -u $(id -u):influxdb
+        -p 8086:8086
+        -v ${data}:/home/influxdb/influxdb2
+        -v ${config}:/etc/influxdb2
+        -v ${TMP}/v1db:/home/influxdb/v1
+        -v ${v1_config}:/etc/influxdb/influxdb.conf
+        -e INFLUXDB_INIT_MODE=upgrade
+        -e INFLUXDB_INIT_USERNAME=${TEST_USER}
+        -e INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
+        -e INFLUXDB_INIT_ORG=${TEST_ORG}
+        -e INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
+        -e INFLUXDB_INIT_RETENTION=${TEST_RETENTION_SECONDS}s
+        influxdb:${tag}
+    )
+
+    log_msg Booting 2.x container in upgrade mode with custom config
+    if ! ${docker_run_influxd[@]} > /dev/null; then
+        log_msg Error: Failed to launch container
+        return 1
+    fi
+    wait_for_setup ${container_name}
+
+    log_msg Checking onboarding API post-upgrade
+    local onboarding_allowed=$(curl -s localhost:8086/api/v2/setup | jq .allowed)
+    if [[ ${onboarding_allowed} != 'false' ]]; then
+        log_msg Error: Onboarding allowed post-upgrade
+        return 1
+    fi
+
+    log_msg Tearing down 2.x container
+    docker stop ${container_name} > /dev/null
+    docker logs ${container_name} > ${logs}/init-docker-stdout.log 2> ${logs}/init-docker-stderr.log
+    docker rm ${container_name} > /dev/null
+
+    if [ ! -f ${data}/influxd.bolt ]; then
+        log_msg Error: BoltDB not persisted to host directory
+        return 1
+    fi
+
+    log_msg Booting another 2.x container
+    if ! ${docker_run_influxd[@]} > /dev/null; then
+        log_msg Error: failed to launch container
+        return 1
+    fi
+    wait_for_startup ${container_name}
+
+    log_msg Checking onboarding API after recreating container
+    onboarding_allowed=$(curl -s localhost:8086/api/v2/setup | jq .allowed)
+
+    if [[ ${onboarding_allowed} != 'false' ]]; then
+        log_msg Error: Onboarding allowed after recreating container
+        return 1
+    fi
 }
 
 function test_2x_auto_upgrade_user_scripts () {
-    local -r tag=$1 container_name=$2 data=$3 config=$4 logs=$5
+    local -r tag=$1 container_name=$2 data=$3 config=$4 logs=$5 scripts=$6
 
-    echo 'hola'
+    echo "$TEST_CREATE_DBRP_SCRIPT" > ${scripts}/1-create-dbrp.sh
+    echo "$TEST_CREATE_V1_AUTH_SCRIPT" > ${scripts}/2-create-v1-auth.sh
+    chmod +x ${scripts}/1-create-dbrp.sh
+    chmod +x ${scripts}/2-create-v1-auth.sh
+
+    local -ra docker_run_influxd=(
+        docker run -i -d
+        --name=${container_name}
+        -u $(id -u):influxdb
+        -p 8086:8086
+        -v ${data}:/var/lib/influxdb2
+        -v ${config}:/etc/influxdb2
+        -v ${TMP}/v1db:/var/lib/influxdb
+        -v ${scripts}:/docker-entrypoint-initdb.d
+        -e INFLUXDB_INIT_MODE=upgrade
+        -e INFLUXDB_INIT_USERNAME=${TEST_USER}
+        -e INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
+        -e INFLUXDB_INIT_ORG=${TEST_ORG}
+        -e INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
+        -e INFLUXDB_INIT_RETENTION=${TEST_RETENTION_SECONDS}s
+        influxdb:${tag}
+    )
+
+    log_msg Booting 2.x container in upgrade mode
+    if ! ${docker_run_influxd[@]} > /dev/null; then
+        log_msg Error: Failed to launch container
+        return 1
+    fi
+    wait_for_setup ${container_name}
+
+    log_msg Checking onboarding API after recreating container
+    onboarding_allowed=$(curl -s localhost:8086/api/v2/setup | jq .allowed)
+
+    if [[ ${onboarding_allowed} != 'false' ]]; then
+        log_msg Error: Onboarding allowed after recreating container
+        return 1
+    fi
+
+    local -r auth_token=$(extract_token ${config}/influx-configs)
+
+    log_msg Checking org list after recreating container
+    local -r orgs=$(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/api/v2/orgs | jq -r .orgs[].name)
+    if [[ ${orgs} != ${TEST_ORG} ]]; then
+        log_msg Error: Bad org list after recreating container
+        echo ${orgs}
+        return 1
+    fi
+
+    log_msg Checking bucket list after recreating container
+    local -r buckets=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/api/v2/buckets | jq -r .buckets[].name | sort -d))
+    if [[ $(join_array ${buckets[@]}) != "bucket,empty/autogen,_monitoring,mydb/1week,mydb/autogen,_tasks,test/autogen" ]]; then
+        log_msg Error: Bad bucket list after recreating container
+        echo ${buckets[@]}
+        return 1
+    fi
+
+    log_msg Checking V1 user list after recreating container
+    local -r users=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/private/legacy/authorizations | jq -r .authorizations[].token | sort -d))
+    if [[ $(join_array ${users[@]}) != "reader,readerwriter,${TEST_V1_USER},writer" ]]; then
+        log_msg Error: Bad user list after recreating container
+        echo ${users[@]}
+        return 1
+    fi
+
+    log_msg Checking we can read from V1 API
+    local -ra curl_v1=(
+        curl -s
+        -u ${TEST_V1_USER}:${TEST_V1_PASSWORD}
+        --data-urlencode db=${TEST_V1_DB}
+        --data-urlencode rp=${TEST_V1_RP}
+        --data-urlencode q='SHOW MEASUREMENTS'
+        localhost:8086/query
+    )
+    local -r measurements=$("${curl_v1[@]}" | jq -r .results[].statement_id)
+    if [[ "${measurements}" != 0 ]]; then
+        log_msg Got unexpected response from V1 API
+        echo ${measurements}
+        return 1
+    fi
 }
 
 declare -ra TEST_CASES=(
