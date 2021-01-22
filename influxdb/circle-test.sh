@@ -82,7 +82,7 @@ function cleanup () {
         docker stop ${leftover_containers[@]}
         docker rm ${leftover_containers[@]}
     fi
-    docker image rm -f influxdb:2.0-${1}
+    docker image rm -f influxdb:2.0-${1} influxdb:2.0-alpine-${1}
 }
 
 ######################
@@ -919,8 +919,9 @@ function main () {
     local -r suffix=$(tag_suffix)
     trap "cleanup ${suffix}" EXIT
 
-    log_msg Building test image
+    log_msg Building test images
     docker build -t influxdb:2.0-${suffix} ${SCRIPT_DIR}/2.0
+    docker build -t influxdb:2.0-alpine-${suffix} ${SCRIPT_DIR}/2.0/alpine
 
     rm -rf ${TMP}
     mkdir -p ${TMP}
@@ -935,33 +936,36 @@ function main () {
             continue
         fi
 
-        # Define standard variables for the test case.
-        local tag=2.0-${suffix}
-        local container=${tc}_${suffix}
-        local data=${TMP}/${tc}/data
-        local config=${TMP}/${tc}/config
-        local logs=${LOGS}/${tc}
-        local scripts=${TMP}/${tc}/scripts
+        for prefix in 2.0 2.0-alpine; do
+            # Define standard variables for the test case.
+            local tag=${prefix}-${suffix}
+            local container=${tc}_${suffix}
+            local data=${TMP}/${tc}/${prefix}/data
+            local config=${TMP}/${tc}/${prefix}/config
+            local logs=${LOGS}/${tc}/${prefix}
+            local scripts=${TMP}/${tc}/${prefix}/scripts
+            mkdir -p ${data} ${config} ${logs} ${scripts}
 
-        mkdir -p ${data} ${config} ${logs} ${scripts}
-        log_msg Running test ${tc}...
-        set +e
-        (set -eo pipefail; ${tc} ${tag} ${container} ${data} ${config} ${logs} ${scripts})
-        local test_status=$?
-        set -e
-        if ((test_status)); then
-            failed_tests+=(${tc})
-            docker logs ${container} > ${logs}/docker-stdout.log 2> ${logs}/docker-stderr.log
-        fi
-        log_msg Cleaning up test ${tc}...
-        docker stop ${container} >/dev/null && docker rm ${container} >/dev/null || true
+            local description="${tc} (${prefix})"
+            log_msg Running test "${description}"...
+            set +e
+            (set -eo pipefail; ${tc} ${tag} ${container} ${data} ${config} ${logs} ${scripts})
+            local test_status=$?
+            set -e
+            if ((test_status)); then
+                failed_tests+=("${description}")
+                docker logs ${container} > ${logs}/docker-stdout.log 2> ${logs}/docker-stderr.log
+            fi
+            log_msg Cleaning up test "${description}"...
+            docker stop ${container} >/dev/null && docker rm ${container} >/dev/null || true
+        done
     done
 
     if [ ${#failed_tests[@]} -eq 0 ]; then
         log_msg All tests succeeded
     else
         log_msg Some tests failed:
-        for tc in ${failed_tests[@]}; do
+        for tc in "${failed_tests[@]}"; do
             echo -e "\t${tc}"
         done
         exit 1

@@ -1,7 +1,7 @@
 FROM alpine:3.13
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache tzdata bash ca-certificates gnupg && \
+RUN apk add --no-cache tzdata bash ca-certificates gnupg run-parts && \
     update-ca-certificates
 
 RUN addgroup -S -g 1000 influxdb && \
