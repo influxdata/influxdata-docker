@@ -91,7 +91,7 @@ function cleanup_influxd () {
     if [ ${exit_code} != 0 ]; then
         local -r bolt_path=$(influxd print-config --key-name bolt-path ${@})
         local -r engine_path=$(influxd print-config --key-name engine-path ${@})
-        
+
         log warn "cleaning bolt and engine files to prevent conflicts on retry" bolt_path ${bolt_path} engine_path ${engine_path}
         rm -rf ${bolt_path} ${engine_path}
     fi
@@ -114,6 +114,7 @@ function upgrade_influxd () {
         --v2-config-path ${CONFIG_VOLUME}/config.toml
         --influx-configs-path ${INFLUX_CONFIGS_PATH}
         --continuous-query-export-path ${CONFIG_VOLUME}/v1-cq-export.txt
+        --log-path ${CONFIG_VOLUME}/upgrade.log
         --log-level $(influxd print-config --key-name log-level ${@})
         --bolt-path $(influxd print-config --key-name bolt-path ${@})
         --engine-path $(influxd print-config --key-name engine-path ${@})
@@ -234,7 +235,7 @@ function influxd_main () {
     elif [ -z "$INFLUXDB_INIT_MODE" ]; then
         log warn "boltdb not found at configured path, but INFLUXDB_INIT_MODE not specified, skipping setup wrapper" bolt_path ${bolt_path}
         influxd ${@}
-    else 
+    else
         init_influxd ${@}
     fi
 }

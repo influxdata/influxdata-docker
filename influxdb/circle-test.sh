@@ -56,6 +56,11 @@ function extract_token () {
     sed -En 's/^[[:space:]]+token[[:space:]]+=[[:space:]]+"([^"]+)"/\1/p' ${1}
 }
 
+function join_array () {
+    local IFS=,
+    echo "$*"
+}
+
 ###########################
 ##### SETUP / CLEANUP #####
 ###########################
@@ -622,7 +627,62 @@ function test_2x_auto_setup_user_scripts () {
 function test_2x_auto_upgrade () {
     local -r tag=$1 container_name=$2 data=$3 config=$4 logs=$5
 
-    echo 'hola'
+    local -ra docker_run_influxd=(
+        docker run -i -d
+        --name=${container_name}
+        -u $(id -u):influxdb
+        -p 8086:8086
+        -v ${data}:/var/lib/influxdb2
+        -v ${config}:/etc/influxdb2
+        -v ${TMP}/v1db:/var/lib/influxdb
+        -e INFLUXDB_INIT_MODE=upgrade
+        -e INFLUXDB_INIT_USERNAME=${TEST_USER}
+        -e INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
+        -e INFLUXDB_INIT_ORG=${TEST_ORG}
+        -e INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
+        -e INFLUXDB_INIT_RETENTION=${TEST_RETENTION_SECONDS}s
+        influxdb:${tag}
+    )
+
+    log_msg Booting 2.x container in upgrade mode
+    if ! ${docker_run_influxd[@]} > /dev/null; then
+        log_msg Error: Failed to launch container
+        return 1
+    fi
+    wait_for_setup ${container_name}
+
+    log_msg Checking onboarding API post-upgrade
+    local onboarding_allowed=$(curl -s localhost:8086/api/v2/setup | jq .allowed)
+    if [[ ${onboarding_allowed} != 'false' ]]; then
+        log_msg Error: Onboarding allowed post-upgrade
+        return 1
+    fi
+
+    local -r auth_token=$(extract_token ${config}/influx-configs)
+
+    log_msg Checking org list post-upgrade
+    local orgs=$(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/api/v2/orgs | jq -r .orgs[].name)
+    if [[ ${orgs} != ${TEST_ORG} ]]; then
+        log_msg Error: Bad org list post-setup
+        echo ${orgs}
+        return 1
+    fi
+
+    log_msg Checking bucket list post-upgrade
+    local buckets=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/api/v2/buckets | jq -r .buckets[].name | sort))
+    if [[ $(join_array ${buckets[@]}) != "_monitoring,_tasks,bucket,empty/autogen,mydb/1week,mydb/autogen,test/autogen" ]]; then
+        log_msg Error: Bad bucket list post-upgrade
+        echo ${buckets[@]}
+        return 1
+    fi
+
+    log_msg Checking V1 user list post-upgrade
+    local users=($(curl -s -H "Authorization: Token ${auth_token}" localhost:8086/private/legacy/authorizations | jq -r .authorizations[].token | sort))
+    if [[ $(join_array ${users[@]}) != "reader,readerwriter,writer" ]]; then
+        log_msg Error: Bad user list post-upgrade
+        echo ${users[@]}
+        return 1
+    fi
 }
 
 function test_2x_auto_upgrade_custom_config () {
