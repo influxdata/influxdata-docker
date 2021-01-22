@@ -17,11 +17,9 @@ jobs:
       - run: bash circle-test.sh
 
   test-influxdb:
-    docker:
-      - image: cimg/go:1.15.6
+    machine: true
     steps:
       - checkout
-      - setup_remote_docker
       - run: sudo apt-get update && sudo apt-get install -y jq
       - run: bash influxdb/circle-test.sh
       - store_artifacts:
