@@ -1,10 +1,16 @@
 version: 2.1
 
+workflows:
+  version: 2
+  ci:
+    jobs:
+      - build
+      - test-influxdb
+
 jobs:
   build:
     docker:
       - image: cimg/go:1.15.6
-    working_directory: /go/src/github.com/influxdata/influxdata-docker
     steps:
       - checkout
       - setup_remote_docker
@@ -13,7 +19,6 @@ jobs:
   test-influxdb:
     docker:
       - image: cimg/go:1.15.6
-    working_directory: /go/src/github.com/influxdata/influxdata-docker
     steps:
       - checkout
       - setup_remote_docker
