@@ -49,6 +49,7 @@ function set_config_path () {
     export INFLUXD_CONFIG_PATH=${config_path}
 }
 
+# Ensure all the data directories needed by influxd exist with the right permissions.
 function create_directories () {
     local -r bolt_path=$(influxd print-config --key-name bolt-path ${@})
     local -r bolt_dir=$(dirname ${bolt_path})
