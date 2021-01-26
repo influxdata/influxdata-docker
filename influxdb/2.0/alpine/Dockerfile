@@ -46,8 +46,14 @@ RUN set -eux && \
     wget --no-verbose https://dl.influxdata.com/platform/nightlies/influxdb2_nightly_linux_${ARCH}.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/platform/nightlies/influxdb2_nightly_linux_${ARCH}.tar.gz && \
     export GNUPGHOME="$(mktemp -d)" && \
-    wget --no-verbose https://repos.influxdata.com/influxdb2.key && \
-    gpg --batch --import influxdb2.key && \
+    echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf && \
+    KEY=8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
+    ( \
+        gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$KEY" || \
+        gpg --keyserver pgp.mit.edu --recv-keys "$KEY" || \
+        gpg --keyserver keys.openpgp.org --recv-keys "$KEY" || \
+        gpg --keyserver keyserver.pgp.com --recv-keys "$KEY" \
+    ) && \
     gpg --batch --verify influxdb2_nightly_linux_${ARCH}.tar.gz.asc influxdb2_nightly_linux_${ARCH}.tar.gz && \
     tar xzf influxdb2_nightly_linux_${ARCH}.tar.gz && \
     cp influxdb2_nightly_linux_${ARCH}/influx* /usr/local/bin/ && \
