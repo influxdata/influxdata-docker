@@ -1,11 +1,9 @@
 package main
 
 import (
-	"os"
-
-	"path/filepath"
-
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/influxdata/influxdata-docker/dockerlib/dockerlib"
 	"github.com/spf13/cobra"
@@ -57,7 +55,7 @@ func Update() error {
 			}
 			defer f.Close()
 
-			if err := m.Write(f, &header); err != nil {
+			if err := m.Write(f, &header, dockerlib.DockerfileVersion); err != nil {
 				return err
 			}
 			return f.Close()

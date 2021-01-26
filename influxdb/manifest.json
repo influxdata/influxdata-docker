@@ -1,26 +1,24 @@
 {
   "name": "influxdb",
-  "versions": ["1.7", "1.8"],
-  "architectures": [
-    "amd64",
-    "arm32v7",
-    "arm64v8"
+  "maintainers": [
+    "Daniel Moran <dmoran@influxdata.com> (@danxmoran)"
   ],
-  "variants": [
+  "major-versions": [
     {
-      "name": "alpine"
-    },
-    {
-      "name": "data"
-    },
-    {
-      "name": "data/alpine"
-    },
-    {
-      "name": "meta"
-    },
-    {
-      "name": "meta/alpine"
+      "name": "1.x",
+      "versions": ["1.7", "1.8"],
+      "architectures": [
+        "amd64",
+        "arm32v7",
+        "arm64v8"
+      ],
+      "variants": [
+        { "name": "alpine" },
+        { "name": "data" },
+        { "name": "data/alpine" },
+        { "name": "meta" },
+        { "name": "meta/alpine" }
+      ]
     }
   ]
 }
