@@ -99,13 +99,9 @@ function ensure_init_vars_set () {
 # If exiting on error, delete all bolt and engine files.
 # If we didn't do this, the container would see the boltdb file on reboot and assume
 # the DB is already full set up.
-declare CLEAN_ON_EXIT=1
-
 function cleanup_influxd () {
-    if [ ${CLEAN_ON_EXIT} -eq 1 ]; then
-        log warn "cleaning bolt and engine files to prevent conflicts on retry" bolt_path ${BOLT_PATH} engine_path ${ENGINE_PATH}
-        rm -rf ${BOLT_PATH} ${ENGINE_PATH}
-    fi
+    log warn "cleaning bolt and engine files to prevent conflicts on retry" bolt_path ${BOLT_PATH} engine_path ${ENGINE_PATH}
+    rm -rf ${BOLT_PATH} ${ENGINE_PATH}
 }
 
 # Upgrade V1 data into the V2 format using influxd upgrade.
@@ -223,7 +219,6 @@ declare INFLUXD_PID=""
 
 function handle_term () {
     if [ -n "$INFLUXD_PID" ]; then
-        CLEAN_ON_EXIT=0
         kill -TERM ${INFLUXD_PID}
         wait ${INFLUXD_PID}
     fi
@@ -231,7 +226,6 @@ function handle_term () {
 
 function handle_int () {
     if [ -n "$INFLUXD_PID" ]; then
-        CLEAN_ON_EXIT=0
         kill -INT ${INFLUXD_PID}
         wait ${INFLUXD_PID}
     fi
@@ -272,6 +266,7 @@ function init_influxd () {
     run_user_scripts
 
     log info "initialization complete, bringing influxd to foreground"
+    trap - EXIT
     wait ${INFLUXD_PID}
 }
 
