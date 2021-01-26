@@ -7,11 +7,11 @@ RUN groupadd -r influxdb --gid=1000 && \
 
 # Install gosu for easy step-down from root.
 # https://github.com/tianon/gosu/releases
-ENV GOSU_VERSION 1.12
+ENV GOSU_VER 1.12
 RUN set -eux; \
 	dpkgArch="$(dpkg --print-architecture)" && \
-	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" && \
-	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc" && \
+	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-$dpkgArch" && \
+	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-$dpkgArch.asc" && \
 	export GNUPGHOME="$(mktemp -d)" && \
 	gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 && \
 	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu && \
@@ -21,7 +21,7 @@ RUN set -eux; \
 	gosu --version && \
 	gosu nobody true
 
-# ENV INFLUXDB_VERSION 2.0.4
+ENV INFLUXDB_VERSION 2.0.4
 # TODO: Update this to use a 'real' release.
 RUN set -eux && \
     ARCH= && dpkgArch="$(dpkg --print-architecture)" && \

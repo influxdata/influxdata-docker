@@ -4,13 +4,18 @@
     "Jonathan A. Sternberg <jonathan@influxdata.com> (@jsternberg)",
     "Bucky Schwarz <bucky@influxdata.com> (@hoorayimhelping)"
   ],
-  "versions": ["1.6", "1.7", "1.8"],
-  "architectures": [
-    "amd64",
-    "arm32v7",
-    "arm64v8"
-  ],
-  "variants": [
-    {"name": "alpine"}
+  "major-versions": [
+    {
+      "name": "1.x",
+      "versions": ["1.6", "1.7", "1.8"],
+      "architectures": [
+        "amd64",
+        "arm32v7",
+        "arm64v8"
+      ],
+      "variants": [
+        {"name": "alpine"}
+      ]
+    }
   ]
 }
