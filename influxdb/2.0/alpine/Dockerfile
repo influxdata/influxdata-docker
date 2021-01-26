@@ -55,17 +55,13 @@ RUN set -eux && \
     influxd version && \
     influx version
 
-RUN mkdir /docker-entrypoint-initdb.d
-
-RUN mkdir -p /var/lib/influxdb2 && \
+# Create standard directories expected by the entry-point.
+RUN mkdir /docker-entrypoint-initdb.d && \
+    mkdir -p /var/lib/influxdb2 && \
     chown -R influxdb:influxdb /var/lib/influxdb2 && \
-    chmod 777 /var/lib/influxdb2
-VOLUME /var/lib/influxdb2
-
-RUN mkdir -p /etc/influxdb2 && \
-    chown -R influxdb:influxdb /etc/influxdb2 && \
-    chmod 777 /etc/influxdb2
-VOLUME /etc/influxdb2
+    mkdir -p /etc/influxdb2 && \
+    chown -R influxdb:influxdb /etc/influxdb2
+VOLUME /var/lib/influxdb2 /etc/influxdb2
 
 COPY default-config.yml /etc/defaults/influxdb2/config.yml
 COPY entrypoint.sh /entrypoint.sh

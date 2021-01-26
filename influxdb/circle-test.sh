@@ -264,7 +264,7 @@ function test_2x_custom_config () {
         -p 8086:8086
         -v ${data}:/home/influxdb/influxdb2
         -v ${config}:/etc/influxdb2
-        influxdb:${tag}
+        influxdb:${tag} run
     )
 
     log_msg Booting 2.x container with custom config
@@ -328,7 +328,7 @@ function test_2x_auto_setup_no_rp () {
         -e INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
         -e INFLUXDB_INIT_ORG=${TEST_ORG}
         -e INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
-        influxdb:${tag}
+        influxdb:${tag} influxd
     )
 
     log_msg Booting 2.x container in setup mode
@@ -434,7 +434,7 @@ function test_2x_auto_setup_with_rp () {
         -e INFLUXDB_INIT_ORG=${TEST_ORG}
         -e INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
         -e INFLUXDB_INIT_RETENTION=${TEST_RETENTION_SECONDS}s
-        influxdb:${tag}
+        influxdb:${tag} influxd run
     )
 
     # Boot the container
@@ -469,13 +469,13 @@ function test_2x_auto_setup_custom_config () {
     fi
 
     # Rewrite data paths.
-    sed 's#/var/lib/influxdb2#/home/influxdb/influxdb2#g' ${config}/default-config.yml > ${config}/config.yml
+    sed -e 's#/var/lib/influxdb2#/home/influxdb/influxdb2#g' -e 's#:8086#:9000#g' ${config}/default-config.yml > ${config}/config.yml
 
     local -ra docker_run_influxd=(
         docker run -i -d
         --name=${container_name}
         -u $(id -u):influxdb
-        -p 8086:8086
+        -p 8086:9000
         -v ${data}:/home/influxdb/influxdb2
         -v ${config}:/etc/influxdb2
         -e INFLUXDB_INIT_MODE=setup
@@ -484,7 +484,7 @@ function test_2x_auto_setup_custom_config () {
         -e INFLUXDB_INIT_ORG=${TEST_ORG}
         -e INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
         -e INFLUXDB_INIT_RETENTION=${TEST_RETENTION_SECONDS}s
-        influxdb:${tag}
+        influxdb:${tag} influxd
     )
 
     log_msg Booting 2.x container in setup mode
@@ -641,7 +641,7 @@ function test_2x_auto_upgrade () {
         -e INFLUXDB_INIT_ORG=${TEST_ORG}
         -e INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
         -e INFLUXDB_INIT_RETENTION=${TEST_RETENTION_SECONDS}s
-        influxdb:${tag}
+        influxdb:${tag} run
     )
 
     log_msg Booting 2.x container in upgrade mode
@@ -742,7 +742,7 @@ function test_2x_auto_upgrade_custom_config () {
         log_msg Error: Failed to extract default config
         return 1
     fi
-    sed 's#/var/lib/influxdb2#/home/influxdb/influxdb2#g' ${config}/default-config.yml > ${config}/config.yml
+    sed -e 's#/var/lib/influxdb2#/home/influxdb/influxdb2#g' -e 's#:8086#:9000#g' ${config}/default-config.yml > ${config}/config.yml
 
     local -r v1_config=${TMP}/test_2x_auto_upgrade_custom_config-v1.conf
     cat > ${v1_config} <<'EOF'
@@ -753,13 +753,16 @@ function test_2x_auto_upgrade_custom_config () {
   dir = "/home/influxdb/v1/data"
   engine = "tsm1"
   wal-dir = "/home/influxdb/v1/wal"
+
+[http]
+  bind-address = ":9000"
 EOF
 
     local -ra docker_run_influxd=(
         docker run -i -d
         --name=${container_name}
         -u $(id -u):influxdb
-        -p 8086:8086
+        -p 8086:9000
         -v ${data}:/home/influxdb/influxdb2
         -v ${config}:/etc/influxdb2
         -v ${TMP}/v1db:/home/influxdb/v1
@@ -770,7 +773,7 @@ EOF
         -e INFLUXDB_INIT_ORG=${TEST_ORG}
         -e INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
         -e INFLUXDB_INIT_RETENTION=${TEST_RETENTION_SECONDS}s
-        influxdb:${tag}
+        influxdb:${tag} influxd run
     )
 
     log_msg Booting 2.x container in upgrade mode with custom config
@@ -836,7 +839,7 @@ function test_2x_auto_upgrade_user_scripts () {
         -e INFLUXDB_INIT_ORG=${TEST_ORG}
         -e INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
         -e INFLUXDB_INIT_RETENTION=${TEST_RETENTION_SECONDS}s
-        influxdb:${tag}
+        influxdb:${tag} influxd
     )
 
     log_msg Booting 2.x container in upgrade mode
@@ -952,9 +955,9 @@ function main () {
             (set -eo pipefail; ${tc} ${tag} ${container} ${data} ${config} ${logs} ${scripts})
             local test_status=$?
             set -e
-            if ((test_status)); then
+            if [ ${test_status} -eq 1 ]; then
                 failed_tests+=("${description}")
-                docker logs ${container} > ${logs}/docker-stdout.log 2> ${logs}/docker-stderr.log
+                docker logs ${container} > ${logs}/docker-stdout.log 2> ${logs}/docker-stderr.log || true
             fi
             log_msg Cleaning up test "${description}"...
             docker stop ${container} >/dev/null && docker rm ${container} >/dev/null || true
