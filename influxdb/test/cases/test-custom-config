@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+declare -r SCRIPT_DIR=$(cd $(dirname $0) >/dev/null 2>&1 && pwd)
+source ${SCRIPT_DIR}/common.sh
+
+declare -r tag=$1 container_name=$2 data=$3 config=$4 logs=$5
+
+# Extract the default config from the container.
+log_msg Getting default config
+if ! docker run --rm influxdb:${tag} influxd print-config > ${config}/default-config.yml; then
+    log_msg Error: Failed to extract default config
+    exit 1
+fi
+
+# Rewrite data paths.
+sed 's#/var/lib/influxdb2#/home/influxdb/influxdb2#g' ${config}/default-config.yml > ${config}/config.yml
+
+declare -ra docker_run_influxd=(
+    docker run -i -d
+    --name=${container_name}
+    -u $(id -u):influxdb
+    -p 8086:8086
+    -v ${data}:/home/influxdb/influxdb2
+    -v ${config}:/etc/influxdb2
+    influxdb:${tag} run
+)
+
+log_msg Booting 2.x container with custom config
+if ! ${docker_run_influxd[@]} > /dev/null; then
+    log_msg Error: Failed to launch container
+    exit 1
+fi
+wait_container_ready
+
+log_msg Setting up DB with custom config
+if ! docker exec -i ${container_name} influx setup -f \
+    --username ${TEST_USER} \
+    --password ${TEST_PASSWORD} \
+    --org ${TEST_ORG} \
+    --bucket ${TEST_BUCKET}; then
+    log_msg Error: failed to run 'influx setup' command
+    exit 1
+fi
+
+log_msg Tearing down 2.x container
+docker stop ${container_name} > /dev/null
+docker logs ${container_name} > ${logs}/init-docker-stdout.log 2> ${logs}/init-docker-stderr.log
+docker rm ${container_name} > /dev/null
+
+# Check that files were persisted to the host.
+if [ ! -f ${data}/influxd.bolt ]; then
+    log_msg Error: BoltDB not persisted to host directory
+    exit 1
+fi
+
+# Create a new container using the same mount-points.
+log_msg Booting another 2.x container
+if ! ${docker_run_influxd[@]} > /dev/null; then
+    log_msg Error: failed to launch container
+    exit 1
+fi
+wait_container_ready
+
+# Make sure the DB still reports that it's been set up.
+log_msg Checking onboarding API after recreating container
+onboarding_allowed=$(curl -s localhost:8086/api/v2/setup | jq .allowed)
+
+if [[ ${onboarding_allowed} != 'false' ]]; then
+    log_msg Error: Onboarding allowed after recreating container
+    exit 1
+fi
