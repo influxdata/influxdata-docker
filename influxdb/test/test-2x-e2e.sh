@@ -50,7 +50,7 @@ function cleanup () {
         docker stop ${leftover_containers[@]}
         docker rm ${leftover_containers[@]}
     fi
-    docker image rm -f influxdb:2.0-${1}
+    docker image rm -f influxdb:2.0-${1} influxdb:2.0-alpine-${1}
 }
 
 #######################

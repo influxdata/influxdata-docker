@@ -146,8 +146,8 @@ function upgrade_influxd () {
         set -- ${@} --config-file ${INFLUXDB_INIT_UPGRADE_V1_CONFIG}
     elif [[ -n "$INFLUXDB_INIT_UPGRADE_V1_DIR" && -d ${INFLUXDB_INIT_UPGRADE_V1_DIR} ]]; then
         set -- ${@} --v1-dir ${INFLUXDB_INIT_UPGRADE_V1_DIR}
-    elif [ -f etc/influxdb/influxdb.conf ]; then
-        set -- ${@} --config-file etc/influxdb/influxdb.conf
+    elif [ -f /etc/influxdb/influxdb.conf ]; then
+        set -- ${@} --config-file /etc/influxdb/influxdb.conf
     elif [ -d /var/lib/influxdb ]; then
         set -- ${@} --v1-dir /var/lib/influxdb
     else
