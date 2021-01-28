@@ -54,7 +54,7 @@ function wait_container_ready () {
 }
 
 function extract_token () {
-    sed -En 's/^[[:space:]]+token[[:space:]]+=[[:space:]]+"([^"]+)"/\1/p' ${1}
+    docker exec -i ${1} influx auth list --user ${TEST_USER} --hide-headers | cut -f 3
 }
 
 function join_array () {

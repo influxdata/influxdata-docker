@@ -138,8 +138,8 @@ function upgrade_influxd () {
         upgrade_args=(${upgrade_args[@]} --config-file ${INFLUXDB_INIT_UPGRADE_V1_CONFIG})
     elif [[ -n "$INFLUXDB_INIT_UPGRADE_V1_DIR" && -d ${INFLUXDB_INIT_UPGRADE_V1_DIR} ]]; then
         upgrade_args=(${upgrade_args[@]} --v1-dir ${INFLUXDB_INIT_UPGRADE_V1_DIR})
-    elif [ -f etc/influxdb/influxdb.conf ]; then
-        upgrade_args=(${upgrade_args[@]} --config-file etc/influxdb/influxdb.conf)
+    elif [ -f /etc/influxdb/influxdb.conf ]; then
+        upgrade_args=(${upgrade_args[@]} --config-file /etc/influxdb/influxdb.conf)
     elif [ -d /var/lib/influxdb ]; then
         upgrade_args=(${upgrade_args[@]} --v1-dir /var/lib/influxdb)
     else
