@@ -4,7 +4,7 @@ RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata && \
     update-ca-certificates
 
-ENV TELEGRAF_VERSION 1.17.1
+ENV TELEGRAF_VERSION 1.17.2
 
 RUN set -ex && \
     mkdir ~/.gnupg; \
