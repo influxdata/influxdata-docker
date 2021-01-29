@@ -212,6 +212,13 @@ function run_user_scripts () {
     fi
 }
 
+# Helper used to propagate signals received during initialization to the influxd
+# process running in the background.
+function handle_signal () {
+    kill -${1} ${2}
+    wait ${2}
+}
+
 # Perform initial setup on the InfluxDB instance, either by setting up fresh metadata
 # or by upgrading existing V1 data.
 function init_influxd () {
@@ -241,6 +248,8 @@ function init_influxd () {
     log info "booting influxd server in the background"
     INFLUXD_CONFIG_PATH=${init_config} influxd ${@} &
     local -r influxd_init_pid="$!"
+    trap "handle_signal TERM ${influxd_init_pid}" TERM
+    trap "handle_signal INT ${influxd_init_pid}" INT
 
     export INFLUX_HOST="http://localhost:${INFLUXD_INIT_PORT}"
     wait_for_influxd
@@ -256,7 +265,7 @@ function init_influxd () {
     log info "initialization complete, shutting down background influxd"
     kill -TERM ${influxd_init_pid}
     wait ${influxd_init_pid} || true
-    trap - EXIT
+    trap - EXIT INT TERM
 
     # Rewrite the ClI configs to point at the server's final HTTP address.
     local -r final_port=$(echo ${final_bind_addr} | sed -E 's#[^:]*:(.*)#\1#')
