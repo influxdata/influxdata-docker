@@ -50,7 +50,7 @@ function cleanup () {
         docker stop ${leftover_containers[@]}
         docker rm ${leftover_containers[@]}
     fi
-    docker image rm -f influxdb:2.0-${1}
+    docker image rm -f influxdb:2.0-${1} influxdb:2.0-alpine-${1}
 }
 
 #######################
@@ -65,6 +65,7 @@ function main () {
 
     log_msg Building test images
     docker build -t influxdb:2.0-${suffix} ${IMG_DIR}/2.0
+    docker build -t influxdb:2.0-alpine-${suffix} ${IMG_DIR}/2.0/alpine
 
     rm -rf ${TMP} ${LOGS}
     mkdir -p ${TMP} ${LOGS}
@@ -82,7 +83,7 @@ function main () {
             continue
         fi
 
-        for prefix in 2.0; do
+        for prefix in 2.0 2.0-alpine; do
             # Define standard variables for the test case.
             local tag=${prefix}-${suffix}
             local container=${tc}_${suffix}
