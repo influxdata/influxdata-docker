@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+declare -r SCRIPT_DIR=$(cd $(dirname $0) >/dev/null 2>&1 && pwd)
+source ${SCRIPT_DIR}/common.sh
+
+declare -r tag=$1 container_name=$2 data=$3 config=$4 logs=$5 scripts=$6
+
+echo "$TEST_CREATE_DBRP_SCRIPT" > ${scripts}/1-create-dbrp.sh
+echo "$TEST_CREATE_V1_AUTH_SCRIPT" > ${scripts}/2-create-v1-auth.sh
+chmod +x ${scripts}/1-create-dbrp.sh
+chmod +x ${scripts}/2-create-v1-auth.sh
+
+declare -ra docker_run_influxd=(
+    docker run -i -d
+    --name=${container_name}
+    -u $(id -u):influxdb
+    -p 8086:8086
+    -v ${data}:/var/lib/influxdb2
+    -v ${config}:/etc/influxdb2
+    -v ${scripts}:/docker-entrypoint-initdb.d
+    -e INFLUXDB_INIT_MODE=setup
+    -e INFLUXDB_INIT_USERNAME=${TEST_USER}
+    -e INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
+    -e INFLUXDB_INIT_ORG=${TEST_ORG}
+    -e INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
+    influxdb:${tag}
+)
+
+log_msg Booting 2.x container in setup mode
+if ! ${docker_run_influxd[@]} > /dev/null; then
+    log_msg Error: Failed to launch container
+    exit 1
+fi
+wait_container_ready
+
+log_msg Checking we can read from V1 API
+declare -ra curl_v1=(
+    curl -s
+    -u ${TEST_V1_USER}:${TEST_V1_PASSWORD}
+    --data-urlencode db=${TEST_V1_DB}
+    --data-urlencode rp=${TEST_V1_RP}
+    --data-urlencode q='SHOW MEASUREMENTS'
+    localhost:8086/query
+)
+declare -r measurements=$("${curl_v1[@]}" | jq -r .results[].statement_id)
+if [[ "${measurements}" != 0 ]]; then
+    log_msg Got unexpected response from V1 API
+    echo ${measurements}
+    exit 1
+fi
