@@ -33,7 +33,6 @@ RUN set -eux; \
 	gosu nobody true
 
 ENV INFLUXDB_VERSION 2.0.4
-# TODO: Update this to use a 'real' release.
 RUN set -eux && \
     ARCH=$(arch) && \
     if [ ${ARCH} = x86_64 ]; then \
@@ -43,15 +42,15 @@ RUN set -eux && \
     else \
         echo "Unsupported architecture: ${ARCH}" && exit 1; \
     fi && \
-    wget --no-verbose https://dl.influxdata.com/platform/nightlies/influxdb2_nightly_linux_${ARCH}.tar.gz.asc && \
-    wget --no-verbose https://dl.influxdata.com/platform/nightlies/influxdb2_nightly_linux_${ARCH}.tar.gz && \
+    wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc && \
+    wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
     export GNUPGHOME="$(mktemp -d)" && \
     echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf && \
     gpg --keyserver keys.openpgp.org --recv-keys 8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
-    gpg --batch --verify influxdb2_nightly_linux_${ARCH}.tar.gz.asc influxdb2_nightly_linux_${ARCH}.tar.gz && \
-    tar xzf influxdb2_nightly_linux_${ARCH}.tar.gz && \
-    cp influxdb2_nightly_linux_${ARCH}/influx* /usr/local/bin/ && \
-    rm -rf "$GNUPGHOME" influxdb2.key influxdb2_nightly_${ARCH}* && \
+    gpg --batch --verify influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
+    tar xzf influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
+    cp influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}/influx* /usr/local/bin/ && \
+    rm -rf "$GNUPGHOME" influxdb2.key influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}* && \
     influxd version && \
     influx version
 
