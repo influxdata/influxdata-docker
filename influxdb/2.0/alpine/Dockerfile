@@ -13,7 +13,7 @@ RUN addgroup -S -g 1000 influxdb && \
 # https://github.com/tianon/gosu/releases
 ENV GOSU_VER 1.12
 RUN set -eux; \
-    ARCH=$(arch) && \
+    ARCH="$(apk --print-arch)" && \
     if [ ${ARCH} = x86_64 ]; then \
         ARCH=amd64; \
     elif [ ${ARCH} = aarch64 ]; then \
