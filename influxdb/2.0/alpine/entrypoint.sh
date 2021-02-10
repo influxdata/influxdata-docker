@@ -20,7 +20,7 @@ function log () {
     local level=$1 msg=$2
     shift 2
 
-    if [ $(log_level ${level}) -gt $(log_level ${LOG_LEVEL}) ]; then
+    if [ "$(log_level ${level})" -gt "$(log_level ${LOG_LEVEL})" ]; then
         return
     fi
 
@@ -74,7 +74,7 @@ function set_data_paths () {
 # Ensure all the data directories needed by influxd exist with the right permissions.
 function create_directories () {
     local bolt_dir="$(dirname "${BOLT_PATH}")"
-    local user=$(id -u)
+    local user="$(id -u)"
 
     mkdir -p "${bolt_dir}" "${ENGINE_PATH}"
     chmod 700 "${bolt_dir}" "${ENGINE_PATH}" || :
@@ -82,7 +82,7 @@ function create_directories () {
     mkdir -p "${CONFIG_VOLUME}" || :
     chmod 775 "${CONFIG_VOLUME}" || :
 
-    if [ ${user} = 0 ]; then
+    if [ "${user}" = 0 ]; then
         find "${bolt_dir}" \! -user influxdb -exec chown influxdb '{}' +
         find "${ENGINE_PATH}" \! -user influxdb -exec chown influxdb '{}' +
         find "${CONFIG_VOLUME}" \! -user influxdb -exec chown influxdb '{}' +
@@ -322,7 +322,7 @@ function main () {
         create_directories
     fi
 
-    if [ $(id -u) = 0 ]; then
+    if [ "$(id -u)" = 0 ]; then
         exec gosu influxdb "$0" "${@}"
         return
     fi

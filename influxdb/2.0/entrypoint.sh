@@ -11,7 +11,7 @@ function log () {
     local -r level=$1 msg=$2
     shift 2
 
-    if [ ${LOG_LEVELS[${level}]} -gt ${LOG_LEVELS[${LOG_LEVEL}]} ]; then
+    if [ "${LOG_LEVELS[${level}]}" -gt "${LOG_LEVELS[${LOG_LEVEL}]}" ]; then
         return
     fi
 
@@ -313,7 +313,7 @@ function main () {
         create_directories
     fi
 
-    if [ $(id -u) = 0 ]; then
+    if [ "$(id -u)" = 0 ]; then
         exec gosu influxdb "$BASH_SOURCE" "${@}"
         return
     fi
