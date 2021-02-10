@@ -273,7 +273,7 @@ function init_influxd () {
     log info "initialization complete, shutting down background influxd"
     kill -TERM ${influxd_init_pid}
     wait ${influxd_init_pid} || true
-    trap - EXIT
+    trap - EXIT INT TERM
 
     # Rewrite the ClI configs to point at the server's final HTTP address.
     local final_port=$(echo ${final_bind_addr} | sed -E 's#[^:]*:(.*)#\1#')
