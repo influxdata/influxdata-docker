@@ -28,9 +28,8 @@ function log () {
 # Set the global log-level for the entry-point to match the config passed to influxd.
 function set_global_log_level () {
     local level="$(influxd print-config --key-name log-level "${@}")"
-    if [ -z "${LOG_LEVELS[${level}]}" ]; then
-        log error "Invalid log-level specified, using 'error'" level ${level}
-        return
+    if [ -z "${level}" ] || [ -z "${LOG_LEVELS[${level}]}" ]; then
+        return 1
     fi
     LOG_LEVEL=${level}
 }

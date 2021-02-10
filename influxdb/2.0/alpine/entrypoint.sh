@@ -8,7 +8,7 @@ function log_level () {
         echo 2
     elif [ "$1" = warn ]; then
         echo 1
-    else
+    elif [ "$1" = error ]; then
         echo 0
     fi
 }
@@ -37,9 +37,8 @@ function log () {
 # Set the global log-level for the entry-point to match the config passed to influxd.
 function set_global_log_level () {
     local level="$(influxd print-config --key-name log-level "${@}")"
-    if [ -z "$(log_level ${level})" ]; then
-        log error "Invalid log-level specified, using 'error'" level "${level}"
-        return
+    if [ -z "${level}" ] || [ -z "$(log_level ${level})" ]; then
+        return 1
     fi
     LOG_LEVEL="${level}"
 }
