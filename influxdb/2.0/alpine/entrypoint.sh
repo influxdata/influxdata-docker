@@ -8,7 +8,7 @@ function log_level () {
         echo 2
     elif [ "$1" = warn ]; then
         echo 1
-    else
+    elif [ "$1" = error ]; then
         echo 0
     fi
 }
@@ -19,7 +19,8 @@ LOG_LEVEL=error
 function log () {
     local level=$1 msg=$2
     shift 2
-    if [ $(log_level ${level}) -gt $(log_level ${LOG_LEVEL}) ]; then
+
+    if [ "$(log_level ${level})" -gt "$(log_level ${LOG_LEVEL})" ]; then
         return
     fi
 
@@ -29,17 +30,17 @@ function log () {
         shift 2
     done
 
-    local logtime=$(date --utc +'%FT%T.%NZ')
+    local logtime="$(date --utc +'%FT%T.%NZ')"
     1>&2 echo -e "${logtime}\t${level}\t${msg}\t{${attrs}}"
 }
 
 # Set the global log-level for the entry-point to match the config passed to influxd.
 function set_global_log_level () {
-    local level="$(influxd print-config --key-name log-level ${@})"
-    if [ -z "$(log_level ${level})" ]; then
-        log error "Invalid log-level specified, using 'error'" level ${level}
+    local level="$(influxd print-config --key-name log-level "${@}")"
+    if [ -z "${level}" ] || [ -z "$(log_level ${level})" ]; then
+        return 1
     fi
-    LOG_LEVEL=${level}
+    LOG_LEVEL="${level}"
 }
 
 # Look for standard config names in the volume configured in our Dockerfile.
@@ -50,40 +51,40 @@ readonly CONFIG_NAMES="config.json config.toml config.yaml config.yml"
 function set_config_path () {
     local config_path=/etc/defaults/influxdb2/config.yml
 
-    if [ -n "$INFLUXD_CONFIG_PATH" ]; then
-        config_path=${INFLUXD_CONFIG_PATH}
+    if [ -n "${INFLUXD_CONFIG_PATH}" ]; then
+        config_path="${INFLUXD_CONFIG_PATH}"
     else
-        for name in $CONFIG_NAMES; do
-            if [ -f ${CONFIG_VOLUME}/${name} ]; then
-                config_path=${CONFIG_VOLUME}/${name}
+        for name in ${CONFIG_NAMES}; do
+            if [ -f "${CONFIG_VOLUME}/${name}" ]; then
+                config_path="${CONFIG_VOLUME}/${name}"
                 break
             fi
         done
     fi
 
-    export INFLUXD_CONFIG_PATH=${config_path}
+    export INFLUXD_CONFIG_PATH="${config_path}"
 }
 
 function set_data_paths () {
-    export BOLT_PATH=$(influxd print-config --key-name bolt-path ${@})
-    export ENGINE_PATH=$(influxd print-config --key-name engine-path ${@})
+    export BOLT_PATH="$(influxd print-config --key-name bolt-path "${@}")"
+    export ENGINE_PATH="$(influxd print-config --key-name engine-path "${@}")"
 }
 
 # Ensure all the data directories needed by influxd exist with the right permissions.
 function create_directories () {
-    local bolt_dir=$(dirname ${BOLT_PATH})
-    local user=$(id -u)
+    local bolt_dir="$(dirname "${BOLT_PATH}")"
+    local user="$(id -u)"
 
-    mkdir -p ${bolt_dir} ${ENGINE_PATH}
-    chmod 700 ${bolt_dir} ${ENGINE_PATH} || :
+    mkdir -p "${bolt_dir}" "${ENGINE_PATH}"
+    chmod 700 "${bolt_dir}" "${ENGINE_PATH}" || :
 
-    mkdir -p ${CONFIG_VOLUME} || :
-    chmod 775 ${CONFIG_VOLUME} || :
+    mkdir -p "${CONFIG_VOLUME}" || :
+    chmod 775 "${CONFIG_VOLUME}" || :
 
-    if [ ${user} = 0 ]; then
-        find ${bolt_dir} \! -user influxdb -exec chown influxdb '{}' +
-        find ${ENGINE_PATH} \! -user influxdb -exec chown influxdb '{}' +
-        find ${CONFIG_VOLUME} \! -user influxdb -exec chown influxdb '{}' +
+    if [ "${user}" = 0 ]; then
+        find "${bolt_dir}" \! -user influxdb -exec chown influxdb '{}' +
+        find "${ENGINE_PATH}" \! -user influxdb -exec chown influxdb '{}' +
+        find "${CONFIG_VOLUME}" \! -user influxdb -exec chown influxdb '{}' +
     fi
 }
 
@@ -93,9 +94,9 @@ readonly REQUIRED_INIT_VARS="INFLUXDB_INIT_USERNAME INFLUXDB_INIT_PASSWORD INFLU
 # Ensure all env vars required to run influx setup or influxd upgrade are set in the env.
 function ensure_init_vars_set () {
     local missing_some=0
-    for var in $REQUIRED_INIT_VARS; do
+    for var in ${REQUIRED_INIT_VARS}; do
         if [ -z "$(printenv ${var})" ]; then
-            log error "missing parameter, cannot init InfluxDB" parameter ${var}
+            log error "missing parameter, cannot init InfluxDB" parameter "${var}"
             missing_some=1
         fi
     done
@@ -108,8 +109,8 @@ function ensure_init_vars_set () {
 # If we didn't do this, the container would see the boltdb file on reboot and assume
 # the DB is already full set up.
 function cleanup_influxd () {
-    log warn "cleaning bolt and engine files to prevent conflicts on retry" bolt_path ${BOLT_PATH} engine_path ${ENGINE_PATH}
-    rm -rf ${BOLT_PATH} ${ENGINE_PATH}
+    log warn "cleaning bolt and engine files to prevent conflicts on retry" bolt_path "${BOLT_PATH}" engine_path "${ENGINE_PATH}"
+    rm -rf "${BOLT_PATH}" "${ENGINE_PATH}"
 }
 
 # Upgrade V1 data into the V2 format using influxd upgrade.
@@ -122,40 +123,40 @@ function cleanup_influxd () {
 function upgrade_influxd () {
     set -- \
         --force \
-        --username ${INFLUXDB_INIT_USERNAME} \
-        --password ${INFLUXDB_INIT_PASSWORD} \
-        --org ${INFLUXDB_INIT_ORG} \
-        --bucket ${INFLUXDB_INIT_BUCKET} \
-        --v2-config-path ${CONFIG_VOLUME}/config.toml \
-        --influx-configs-path ${INFLUX_CONFIGS_PATH} \
-        --continuous-query-export-path ${CONFIG_VOLUME}/v1-cq-export.txt \
-        --log-path ${CONFIG_VOLUME}/upgrade.log \
-        --log-level ${LOG_LEVEL} \
-        --bolt-path ${BOLT_PATH} \
-        --engine-path ${ENGINE_PATH} \
+        --username "${INFLUXDB_INIT_USERNAME}" \
+        --password "${INFLUXDB_INIT_PASSWORD}" \
+        --org "${INFLUXDB_INIT_ORG}" \
+        --bucket "${INFLUXDB_INIT_BUCKET}" \
+        --v2-config-path "${CONFIG_VOLUME}/config.toml" \
+        --influx-configs-path "${INFLUX_CONFIGS_PATH}" \
+        --continuous-query-export-path "${CONFIG_VOLUME}/v1-cq-export.txt" \
+        --log-path "${CONFIG_VOLUME}/upgrade.log" \
+        --log-level "${LOG_LEVEL}" \
+        --bolt-path "${BOLT_PATH}" \
+        --engine-path "${ENGINE_PATH}" \
         --overwrite-existing-v2
 
-    if [ -n "$INFLUXDB_INIT_RETENTION" ]; then
-        set -- ${@} --retention ${INFLUXDB_INIT_RETENTION}
+    if [ -n "${INFLUXDB_INIT_RETENTION}" ]; then
+        set -- "${@}" --retention "${INFLUXDB_INIT_RETENTION}"
     fi
-    if [ -n "$INFLUXDB_INIT_ADMIN_TOKEN" ]; then
-        set -- ${@} --token ${INFLUXDB_INIT_ADMIN_TOKEN}
+    if [ -n "${INFLUXDB_INIT_ADMIN_TOKEN}" ]; then
+        set -- "${@}" --token "${INFLUXDB_INIT_ADMIN_TOKEN}"
     fi
 
-    if [[ -n "$INFLUXDB_INIT_UPGRADE_V1_CONFIG" && -f ${INFLUXDB_INIT_UPGRADE_V1_CONFIG} ]]; then
-        set -- ${@} --config-file ${INFLUXDB_INIT_UPGRADE_V1_CONFIG}
-    elif [[ -n "$INFLUXDB_INIT_UPGRADE_V1_DIR" && -d ${INFLUXDB_INIT_UPGRADE_V1_DIR} ]]; then
-        set -- ${@} --v1-dir ${INFLUXDB_INIT_UPGRADE_V1_DIR}
+    if [[ -n "${INFLUXDB_INIT_UPGRADE_V1_CONFIG}" && -f "${INFLUXDB_INIT_UPGRADE_V1_CONFIG}" ]]; then
+        set -- "${@}" --config-file "${INFLUXDB_INIT_UPGRADE_V1_CONFIG}"
+    elif [[ -n "${INFLUXDB_INIT_UPGRADE_V1_DIR}" && -d "${INFLUXDB_INIT_UPGRADE_V1_DIR}" ]]; then
+        set -- "${@}" --v1-dir "${INFLUXDB_INIT_UPGRADE_V1_DIR}"
     elif [ -f /etc/influxdb/influxdb.conf ]; then
-        set -- ${@} --config-file /etc/influxdb/influxdb.conf
+        set -- "${@}" --config-file /etc/influxdb/influxdb.conf
     elif [ -d /var/lib/influxdb ]; then
-        set -- ${@} --v1-dir /var/lib/influxdb
+        set -- "${@}" --v1-dir /var/lib/influxdb
     else
         log error "failed to autodetect usable V1 config or data dir, aborting upgrade"
         exit 1
     fi
 
-    influxd upgrade ${@}
+    influxd upgrade "${@}"
 
     # Reset global influxd config to pick up new file written by the upgrade process.
     set_config_path
@@ -185,27 +186,27 @@ function wait_for_influxd () {
 function setup_influxd () {
     set -- \
         --force \
-        --username ${INFLUXDB_INIT_USERNAME} \
-        --password ${INFLUXDB_INIT_PASSWORD} \
-        --org ${INFLUXDB_INIT_ORG} \
-        --bucket ${INFLUXDB_INIT_BUCKET}
+        --username "${INFLUXDB_INIT_USERNAME}" \
+        --password "${INFLUXDB_INIT_PASSWORD}" \
+        --org "${INFLUXDB_INIT_ORG}" \
+        --bucket "${INFLUXDB_INIT_BUCKET}"
 
-    if [ -n "$INFLUXDB_INIT_RETENTION" ]; then
-        set -- ${@} --retention ${INFLUXDB_INIT_RETENTION}
+    if [ -n "${INFLUXDB_INIT_RETENTION}" ]; then
+        set -- "${@}" --retention "${INFLUXDB_INIT_RETENTION}"
     fi
-    if [ -n "$INFLUXDB_INIT_ADMIN_TOKEN" ]; then
-        set -- ${@} --token ${INFLUXDB_INIT_ADMIN_TOKEN}
+    if [ -n "${INFLUXDB_INIT_ADMIN_TOKEN}" ]; then
+        set -- "${@}" --token "${INFLUXDB_INIT_ADMIN_TOKEN}"
     fi
 
-    influx setup ${@}
+    influx setup "${@}"
 }
 
 # Get the IDs of the initial user/org/bucket created during setup, and export them into the env.
 # We do this to help with arbitrary user scripts, since many influx CLI commands only take IDs.
 function set_init_resource_ids () {
-    export INFLUXDB_INIT_USER_ID=$(influx user list -n ${INFLUXDB_INIT_USER} --hide-headers | cut -f 1)
-    export INFLUXDB_INIT_ORG_ID=$(influx org list -n ${INFLUXDB_INIT_ORG} --hide-headers | cut -f 1)
-    export INFLUXDB_INIT_BUCKET_ID=$(influx bucket list -n ${INFLUXDB_INIT_BUCKET} --hide-headers | cut -f 1)
+    export INFLUXDB_INIT_USER_ID="$(influx user list -n "${INFLUXDB_INIT_USER}" --hide-headers | cut -f 1)"
+    export INFLUXDB_INIT_ORG_ID="$(influx org list -n "${INFLUXDB_INIT_ORG}" --hide-headers | cut -f 1)"
+    export INFLUXDB_INIT_BUCKET_ID="$(influx bucket list -n "${INFLUXDB_INIT_BUCKET}" --hide-headers | cut -f 1)"
 }
 
 # Allow users to mount arbitrary startup scripts into the container,
@@ -230,8 +231,8 @@ function handle_signal () {
 # Perform initial setup on the InfluxDB instance, either by setting up fresh metadata
 # or by upgrading existing V1 data.
 function init_influxd () {
-    if [[ ${INFLUXDB_INIT_MODE} != setup && ${INFLUXDB_INIT_MODE} != upgrade ]]; then
-        log error "found invalid INFLUXDB_INIT_MODE, valid values are 'setup' and 'upgrade'" INFLUXDB_INIT_MODE ${INFLUXDB_INIT_MODE}
+    if [[ "${INFLUXDB_INIT_MODE}" != setup && "${INFLUXDB_INIT_MODE}" != upgrade ]]; then
+        log error "found invalid INFLUXDB_INIT_MODE, valid values are 'setup' and 'upgrade'" INFLUXDB_INIT_MODE "${INFLUXDB_INIT_MODE}"
         exit 1
     fi
     ensure_init_vars_set
@@ -239,22 +240,22 @@ function init_influxd () {
 
     # The upgrade process needs to run before we boot the server, otherwise the
     # boltdb file will be generated and cause conflicts.
-    if [ ${INFLUXDB_INIT_MODE} = upgrade ]; then
+    if [ "${INFLUXDB_INIT_MODE}" = upgrade ]; then
         upgrade_influxd
     fi
 
     # Generate a config file with a known HTTP port
     local init_config=/tmp/config.yml
-    local final_bind_addr=$(influxd print-config --key-name http-bind-address ${@})
+    local final_bind_addr="$(influxd print-config --key-name http-bind-address "${@}")"
     local init_bind_addr=":${INFLUXD_INIT_PORT}"
-    if [ ${init_bind_addr} = ${final_bind_addr} ]; then
-      log warn "influxd setup binding to same addr as final config, server will be exposed before ready" addr ${init_bind_addr}
+    if [ "${init_bind_addr}" = "${final_bind_addr}" ]; then
+      log warn "influxd setup binding to same addr as final config, server will be exposed before ready" addr "${init_bind_addr}"
     fi
-    influxd print-config ${@} | sed "s#${final_bind_addr}#${init_bind_addr}#" > ${init_config}
+    influxd print-config "${@}" | sed "s#${final_bind_addr}#${init_bind_addr}#" > ${init_config}
 
     # Start influxd in the background.
     log info "booting influxd server in the background"
-    INFLUXD_CONFIG_PATH=${init_config} influxd ${@} &
+    INFLUXD_CONFIG_PATH=${init_config} influxd "${@}" &
     local influxd_init_pid="$!"
     trap "handle_signal TERM ${influxd_init_pid}" TERM
     trap "handle_signal INT ${influxd_init_pid}" INT
@@ -263,7 +264,7 @@ function init_influxd () {
     wait_for_influxd
 
     # Use the influx CLI to create an initial user/org/bucket.
-    if [ ${INFLUXDB_INIT_MODE} = setup ]; then
+    if [ "${INFLUXDB_INIT_MODE}" = setup ]; then
         setup_influxd
     fi
 
@@ -271,26 +272,26 @@ function init_influxd () {
     run_user_scripts
 
     log info "initialization complete, shutting down background influxd"
-    kill -TERM ${influxd_init_pid}
-    wait ${influxd_init_pid} || true
-    trap - EXIT
+    kill -TERM "${influxd_init_pid}"
+    wait "${influxd_init_pid}" || true
+    trap - EXIT INT TERM
 
     # Rewrite the ClI configs to point at the server's final HTTP address.
-    local final_port=$(echo ${final_bind_addr} | sed -E 's#[^:]*:(.*)#\1#')
-    sed -i "s#http://localhost:${INFLUXD_INIT_PORT}#http://localhost:${final_port}#g" ${INFLUX_CONFIGS_PATH}
+    local final_port="$(echo ${final_bind_addr} | sed -E 's#[^:]*:(.*)#\1#')"
+    sed -i "s#http://localhost:${INFLUXD_INIT_PORT}#http://localhost:${final_port}#g" "${INFLUX_CONFIGS_PATH}"
 }
 
 # Run influxd, with optional setup logic.
 function influxd_main () {
-    if test -f ${BOLT_PATH}; then
-        log info "found existing boltdb file, skipping setup wrapper" bolt_path ${BOLT_PATH}
-    elif [ -z "$INFLUXDB_INIT_MODE" ]; then
-        log warn "boltdb not found at configured path, but INFLUXDB_INIT_MODE not specified, skipping setup wrapper" bolt_path ${bolt_path}
+    if test -f "${BOLT_PATH}"; then
+        log info "found existing boltdb file, skipping setup wrapper" bolt_path "${BOLT_PATH}"
+    elif [ -z "${INFLUXDB_INIT_MODE}" ]; then
+        log warn "boltdb not found at configured path, but INFLUXDB_INIT_MODE not specified, skipping setup wrapper" bolt_path "${bolt_path}"
     else
-        init_influxd ${@}
+        init_influxd "${@}"
     fi
 
-    exec influxd ${@}
+    exec influxd "${@}"
 }
 
 function main () {
@@ -313,23 +314,23 @@ function main () {
         fi
 
         # Configure logging for our wrapper.
-        set_global_log_level ${@}
+        set_global_log_level "${@}"
         # Configure data paths used across functions.
-        set_data_paths ${@}
+        set_data_paths "${@}"
         # Ensure volume directories exist w/ correct permissions.
         create_directories
     fi
 
-    if [ $(id -u) = 0 ]; then
-        exec gosu influxdb "$0" ${@}
+    if [ "$(id -u)" = 0 ]; then
+        exec gosu influxdb "$0" "${@}"
         return
     fi
 
     if ${run_influxd}; then
-        influxd_main ${@}
+        influxd_main "${@}"
     else
-        exec ${@}
+        exec "${@}"
     fi
 }
 
-main ${@}
+main "${@}"
