@@ -283,7 +283,7 @@ function init_influxd () {
 
 # Run influxd, with optional setup logic.
 function influxd_main () {
-    if test -f "${BOLT_PATH}"; then
+    if [ -f "${BOLT_PATH}" ]; then
         log info "found existing boltdb file, skipping setup wrapper" bolt_path "${BOLT_PATH}"
     elif [ -z "${INFLUXDB_INIT_MODE}" ]; then
         log warn "boltdb not found at configured path, but INFLUXDB_INIT_MODE not specified, skipping setup wrapper" bolt_path "${bolt_path}"
