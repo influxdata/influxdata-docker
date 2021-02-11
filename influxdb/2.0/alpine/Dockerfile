@@ -34,7 +34,7 @@ RUN set -eux; \
 
 ENV INFLUXDB_VERSION 2.0.4
 RUN set -eux && \
-    ARCH=$(arch) && \
+    ARCH="$(apk --print-arch)" && \
     if [ ${ARCH} = x86_64 ]; then \
         ARCH=amd64; \
     elif [ ${ARCH} = aarch64 ]; then \

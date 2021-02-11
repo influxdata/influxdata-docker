@@ -274,7 +274,7 @@ function init_influxd () {
 
 # Run influxd, with optional setup logic.
 function influxd_main () {
-    if test -f "${BOLT_PATH}"; then
+    if [ -f "${BOLT_PATH}" ]; then
         log info "found existing boltdb file, skipping setup wrapper" bolt_path "${BOLT_PATH}"
     elif [ -z "${INFLUXDB_INIT_MODE}" ]; then
         log warn "boltdb not found at configured path, but INFLUXDB_INIT_MODE not specified, skipping setup wrapper" bolt_path "${bolt_path}"
@@ -299,29 +299,27 @@ function main () {
         shift 1
     fi
 
-    if ${run_influxd}; then
-        if [ "$1" = run ]; then
-            shift 1
-        fi
-
-        # Configure logging for our wrapper.
-        set_global_log_level "${@}"
-        # Configure data paths used across functions.
-        set_data_paths "${@}"
-        # Ensure volume directories exist w/ correct permissions.
-        create_directories
+    if ! ${run_influxd}; then
+      exec "${@}"
     fi
+
+    if [ "$1" = run ]; then
+        shift 1
+    fi
+
+    # Configure logging for our wrapper.
+    set_global_log_level "${@}"
+    # Configure data paths used across functions.
+    set_data_paths "${@}"
+    # Ensure volume directories exist w/ correct permissions.
+    create_directories
 
     if [ "$(id -u)" = 0 ]; then
         exec gosu influxdb "$BASH_SOURCE" "${@}"
         return
     fi
 
-    if ${run_influxd}; then
-        influxd_main "${@}"
-    else
-        exec "${@}"
-    fi
+    influxd_main "${@}"
 }
 
 main "${@}"
