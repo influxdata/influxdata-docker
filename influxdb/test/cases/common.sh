@@ -16,11 +16,11 @@ declare -r TEST_CREATE_DBRP_SCRIPT=$(cat <<EOF
 set -e
 
 influx v1 dbrp create \
-  --bucket-id \$INFLUXDB_INIT_BUCKET_ID \
+  --bucket-id \$DOCKER_INFLUXDB_INIT_BUCKET_ID \
   --db ${TEST_V1_DB} \
   --rp ${TEST_V1_RP} \
   --default \
-  --org \$INFLUXDB_INIT_ORG
+  --org \$DOCKER_INFLUXDB_INIT_ORG
 EOF
 )
 declare -r TEST_CREATE_V1_AUTH_SCRIPT=$(cat <<EOF
@@ -30,8 +30,8 @@ set -e
 influx v1 auth create \
   --username ${TEST_V1_USER} \
   --password ${TEST_V1_PASSWORD} \
-  --read-bucket \$INFLUXDB_INIT_BUCKET_ID \
-  --org \$INFLUXDB_INIT_ORG
+  --read-bucket \$DOCKER_INFLUXDB_INIT_BUCKET_ID \
+  --org \$DOCKER_INFLUXDB_INIT_ORG
 EOF
 )
 

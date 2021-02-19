@@ -80,7 +80,7 @@ function create_directories () {
 }
 
 # List of env vars required to auto-run setup or upgrade processes.
-declare -ra REQUIRED_INIT_VARS=(INFLUXDB_INIT_USERNAME INFLUXDB_INIT_PASSWORD INFLUXDB_INIT_ORG INFLUXDB_INIT_BUCKET)
+declare -ra REQUIRED_INIT_VARS=(DOCKER_INFLUXDB_INIT_USERNAME DOCKER_INFLUXDB_INIT_PASSWORD DOCKER_INFLUXDB_INIT_ORG DOCKER_INFLUXDB_INIT_BUCKET)
 
 # Ensure all env vars required to run influx setup or influxd upgrade are set in the env.
 function ensure_init_vars_set () {
@@ -107,17 +107,17 @@ function cleanup_influxd () {
 # Upgrade V1 data into the V2 format using influxd upgrade.
 # The process will use either a V1 config file or a V1 data dir to drive
 # the upgrade, with precedence order:
-#   1. Config file pointed to by INFLUXDB_INIT_UPGRADE_V1_CONFIG env var
-#   2. Data dir pointed to by INFLUXDB_INIT_UPGRADE_V1_DIR env var
+#   1. Config file pointed to by DOCKER_INFLUXDB_INIT_UPGRADE_V1_CONFIG env var
+#   2. Data dir pointed to by DOCKER_INFLUXDB_INIT_UPGRADE_V1_DIR env var
 #   3. Config file at /etc/influxdb/influxdb.conf
 #   4. Data dir at /var/lib/influxdb
 function upgrade_influxd () {
     local -a upgrade_args=(
         --force
-        --username "${INFLUXDB_INIT_USERNAME}"
-        --password "${INFLUXDB_INIT_PASSWORD}"
-        --org "${INFLUXDB_INIT_ORG}"
-        --bucket "${INFLUXDB_INIT_BUCKET}"
+        --username "${DOCKER_INFLUXDB_INIT_USERNAME}"
+        --password "${DOCKER_INFLUXDB_INIT_PASSWORD}"
+        --org "${DOCKER_INFLUXDB_INIT_ORG}"
+        --bucket "${DOCKER_INFLUXDB_INIT_BUCKET}"
         --v2-config-path "${CONFIG_VOLUME}/config.toml"
         --influx-configs-path "${INFLUX_CONFIGS_PATH}"
         --continuous-query-export-path "${CONFIG_VOLUME}/v1-cq-export.txt"
@@ -127,17 +127,17 @@ function upgrade_influxd () {
         --engine-path "${ENGINE_PATH}"
         --overwrite-existing-v2
     )
-    if [ -n "${INFLUXDB_INIT_RETENTION}" ]; then
-        upgrade_args=("${upgrade_args[@]}" --retention "${INFLUXDB_INIT_RETENTION}")
+    if [ -n "${DOCKER_INFLUXDB_INIT_RETENTION}" ]; then
+        upgrade_args=("${upgrade_args[@]}" --retention "${DOCKER_INFLUXDB_INIT_RETENTION}")
     fi
-    if [ -n "${INFLUXDB_INIT_ADMIN_TOKEN}" ]; then
-        upgrade_args=("${upgrade_args[@]}" --token "${INFLUXDB_INIT_ADMIN_TOKEN}")
+    if [ -n "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}" ]; then
+        upgrade_args=("${upgrade_args[@]}" --token "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}")
     fi
 
-    if [[ -n "${INFLUXDB_INIT_UPGRADE_V1_CONFIG}" && -f "${INFLUXDB_INIT_UPGRADE_V1_CONFIG}" ]]; then
-        upgrade_args=("${upgrade_args[@]}" --config-file "${INFLUXDB_INIT_UPGRADE_V1_CONFIG}")
-    elif [[ -n "${INFLUXDB_INIT_UPGRADE_V1_DIR}" && -d "${INFLUXDB_INIT_UPGRADE_V1_DIR}" ]]; then
-        upgrade_args=("${upgrade_args[@]}" --v1-dir "${INFLUXDB_INIT_UPGRADE_V1_DIR}")
+    if [[ -n "${DOCKER_INFLUXDB_INIT_UPGRADE_V1_CONFIG}" && -f "${DOCKER_INFLUXDB_INIT_UPGRADE_V1_CONFIG}" ]]; then
+        upgrade_args=("${upgrade_args[@]}" --config-file "${DOCKER_INFLUXDB_INIT_UPGRADE_V1_CONFIG}")
+    elif [[ -n "${DOCKER_INFLUXDB_INIT_UPGRADE_V1_DIR}" && -d "${DOCKER_INFLUXDB_INIT_UPGRADE_V1_DIR}" ]]; then
+        upgrade_args=("${upgrade_args[@]}" --v1-dir "${DOCKER_INFLUXDB_INIT_UPGRADE_V1_DIR}")
     elif [ -f /etc/influxdb/influxdb.conf ]; then
         upgrade_args=("${upgrade_args[@]}" --config-file /etc/influxdb/influxdb.conf)
     elif [ -d /var/lib/influxdb ]; then
@@ -177,16 +177,16 @@ function wait_for_influxd () {
 function setup_influxd () {
     local -a setup_args=(
         --force
-        --username "${INFLUXDB_INIT_USERNAME}"
-        --password "${INFLUXDB_INIT_PASSWORD}"
-        --org "${INFLUXDB_INIT_ORG}"
-        --bucket "${INFLUXDB_INIT_BUCKET}"
+        --username "${DOCKER_INFLUXDB_INIT_USERNAME}"
+        --password "${DOCKER_INFLUXDB_INIT_PASSWORD}"
+        --org "${DOCKER_INFLUXDB_INIT_ORG}"
+        --bucket "${DOCKER_INFLUXDB_INIT_BUCKET}"
     )
-    if [ -n "${INFLUXDB_INIT_RETENTION}" ]; then
-        setup_args=("${setup_args[@]}" --retention "${INFLUXDB_INIT_RETENTION}")
+    if [ -n "${DOCKER_INFLUXDB_INIT_RETENTION}" ]; then
+        setup_args=("${setup_args[@]}" --retention "${DOCKER_INFLUXDB_INIT_RETENTION}")
     fi
-    if [ -n "${INFLUXDB_INIT_ADMIN_TOKEN}" ]; then
-        setup_args=("${setup_args[@]}" --token "${INFLUXDB_INIT_ADMIN_TOKEN}")
+    if [ -n "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}" ]; then
+        setup_args=("${setup_args[@]}" --token "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}")
     fi
 
     influx setup "${setup_args[@]}"
@@ -195,9 +195,9 @@ function setup_influxd () {
 # Get the IDs of the initial user/org/bucket created during setup, and export them into the env.
 # We do this to help with arbitrary user scripts, since many influx CLI commands only take IDs.
 function set_init_resource_ids () {
-    export INFLUXDB_INIT_USER_ID="$(influx user list -n "${INFLUXDB_INIT_USER}" --hide-headers | cut -f 1)"
-    export INFLUXDB_INIT_ORG_ID="$(influx org list -n "${INFLUXDB_INIT_ORG}" --hide-headers | cut -f 1)"
-    export INFLUXDB_INIT_BUCKET_ID="$(influx bucket list -n "${INFLUXDB_INIT_BUCKET}" --hide-headers | cut -f 1)"
+    export DOCKER_INFLUXDB_INIT_USER_ID="$(influx user list -n "${DOCKER_INFLUXDB_INIT_USER}" --hide-headers | cut -f 1)"
+    export DOCKER_INFLUXDB_INIT_ORG_ID="$(influx org list -n "${DOCKER_INFLUXDB_INIT_ORG}" --hide-headers | cut -f 1)"
+    export DOCKER_INFLUXDB_INIT_BUCKET_ID="$(influx bucket list -n "${DOCKER_INFLUXDB_INIT_BUCKET}" --hide-headers | cut -f 1)"
 }
 
 # Allow users to mount arbitrary startup scripts into the container,
@@ -222,8 +222,8 @@ function handle_signal () {
 # Perform initial setup on the InfluxDB instance, either by setting up fresh metadata
 # or by upgrading existing V1 data.
 function init_influxd () {
-    if [[ "${INFLUXDB_INIT_MODE}" != setup && "${INFLUXDB_INIT_MODE}" != upgrade ]]; then
-        log error "found invalid INFLUXDB_INIT_MODE, valid values are 'setup' and 'upgrade'" INFLUXDB_INIT_MODE "${INFLUXDB_INIT_MODE}"
+    if [[ "${DOCKER_INFLUXDB_INIT_MODE}" != setup && "${DOCKER_INFLUXDB_INIT_MODE}" != upgrade ]]; then
+        log error "found invalid DOCKER_INFLUXDB_INIT_MODE, valid values are 'setup' and 'upgrade'" DOCKER_INFLUXDB_INIT_MODE "${DOCKER_INFLUXDB_INIT_MODE}"
         exit 1
     fi
     ensure_init_vars_set
@@ -231,7 +231,7 @@ function init_influxd () {
 
     # The upgrade process needs to run before we boot the server, otherwise the
     # boltdb file will be generated and cause conflicts.
-    if [ "${INFLUXDB_INIT_MODE}" = upgrade ]; then
+    if [ "${DOCKER_INFLUXDB_INIT_MODE}" = upgrade ]; then
         upgrade_influxd
     fi
 
@@ -255,7 +255,7 @@ function init_influxd () {
     wait_for_influxd
 
     # Use the influx CLI to create an initial user/org/bucket.
-    if [ "${INFLUXDB_INIT_MODE}" = setup ]; then
+    if [ "${DOCKER_INFLUXDB_INIT_MODE}" = setup ]; then
         setup_influxd
     fi
 
@@ -276,8 +276,8 @@ function init_influxd () {
 function influxd_main () {
     if [ -f "${BOLT_PATH}" ]; then
         log info "found existing boltdb file, skipping setup wrapper" bolt_path "${BOLT_PATH}"
-    elif [ -z "${INFLUXDB_INIT_MODE}" ]; then
-        log warn "boltdb not found at configured path, but INFLUXDB_INIT_MODE not specified, skipping setup wrapper" bolt_path "${bolt_path}"
+    elif [ -z "${DOCKER_INFLUXDB_INIT_MODE}" ]; then
+        log warn "boltdb not found at configured path, but DOCKER_INFLUXDB_INIT_MODE not specified, skipping setup wrapper" bolt_path "${bolt_path}"
     else
         init_influxd "${@}"
     fi
