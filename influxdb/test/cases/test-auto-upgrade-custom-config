@@ -36,13 +36,13 @@ declare -ra docker_run_influxd=(
     -v ${data}:/home/influxdb/influxdb2
     -v ${config}:/etc/influxdb2
     -v ${V1_DB_PATH}:/home/influxdb/v1
-    -e INFLUXDB_INIT_UPGRADE_V1_CONFIG=/home/influxdb/v1/influxdb.conf
-    -e INFLUXDB_INIT_MODE=upgrade
-    -e INFLUXDB_INIT_USERNAME=${TEST_USER}
-    -e INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
-    -e INFLUXDB_INIT_ORG=${TEST_ORG}
-    -e INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
-    -e INFLUXDB_INIT_RETENTION=${TEST_RETENTION_SECONDS}s
+    -e DOCKER_INFLUXDB_INIT_UPGRADE_V1_CONFIG=/home/influxdb/v1/influxdb.conf
+    -e DOCKER_INFLUXDB_INIT_MODE=upgrade
+    -e DOCKER_INFLUXDB_INIT_USERNAME=${TEST_USER}
+    -e DOCKER_INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
+    -e DOCKER_INFLUXDB_INIT_ORG=${TEST_ORG}
+    -e DOCKER_INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
+    -e DOCKER_INFLUXDB_INIT_RETENTION=${TEST_RETENTION_SECONDS}s
     influxdb:${tag} influxd run
 )
 
