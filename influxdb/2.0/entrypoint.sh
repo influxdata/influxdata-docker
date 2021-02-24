@@ -57,8 +57,9 @@ function set_config_path () {
 }
 
 function set_data_paths () {
-    export BOLT_PATH="$(influxd print-config --key-name bolt-path "${@}")"
-    export ENGINE_PATH="$(influxd print-config --key-name engine-path "${@}")"
+    BOLT_PATH="$(influxd print-config --key-name bolt-path "${@}")"
+    ENGINE_PATH="$(influxd print-config --key-name engine-path "${@}")"
+    export BOLT_PATH ENGINE_PATH
 }
 
 # Ensure all the data directories needed by influxd exist with the right permissions.
@@ -195,9 +196,10 @@ function setup_influxd () {
 # Get the IDs of the initial user/org/bucket created during setup, and export them into the env.
 # We do this to help with arbitrary user scripts, since many influx CLI commands only take IDs.
 function set_init_resource_ids () {
-    export DOCKER_INFLUXDB_INIT_USER_ID="$(influx user list -n "${DOCKER_INFLUXDB_INIT_USER}" --hide-headers | cut -f 1)"
-    export DOCKER_INFLUXDB_INIT_ORG_ID="$(influx org list -n "${DOCKER_INFLUXDB_INIT_ORG}" --hide-headers | cut -f 1)"
-    export DOCKER_INFLUXDB_INIT_BUCKET_ID="$(influx bucket list -n "${DOCKER_INFLUXDB_INIT_BUCKET}" --hide-headers | cut -f 1)"
+    DOCKER_INFLUXDB_INIT_USER_ID="$(influx user list -n "${DOCKER_INFLUXDB_INIT_USER}" --hide-headers | cut -f 1)"
+    DOCKER_INFLUXDB_INIT_ORG_ID="$(influx org list -n "${DOCKER_INFLUXDB_INIT_ORG}" --hide-headers | cut -f 1)"
+    DOCKER_INFLUXDB_INIT_BUCKET_ID="$(influx bucket list -n "${DOCKER_INFLUXDB_INIT_BUCKET}" --hide-headers | cut -f 1)"
+    export DOCKER_INFLUXDB_INIT_USER_ID DOCKER_INFLUXDB_INIT_ORG_ID DOCKER_INFLUXDB_INIT_BUCKET_ID
 }
 
 # Allow users to mount arbitrary startup scripts into the container,
