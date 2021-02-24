@@ -14,13 +14,11 @@ RUN addgroup -S -g 1000 influxdb && \
 ENV GOSU_VER 1.12
 RUN set -eux; \
     ARCH="$(apk --print-arch)" && \
-    if [ ${ARCH} = x86_64 ]; then \
-        ARCH=amd64; \
-    elif [ ${ARCH} = aarch64 ]; then \
-        ARCH=arm64; \
-    else \
-        echo "Unsupported architecture: ${ARCH}" && exit 1; \
-    fi && \
+    case "${ARCH}" in \
+        x86_64)  ARCH=amd64;; \
+        aarch64) ARCH=arm64;; \
+        *)       echo "Unsupported architecture: ${ARCH}"; exit 1;; \
+    esac && \
 	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-$ARCH"; \
 	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-$ARCH.asc"; \
 	export GNUPGHOME="$(mktemp -d)"; \
