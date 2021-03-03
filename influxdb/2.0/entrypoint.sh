@@ -169,8 +169,9 @@ function wait_for_influxd () {
             log info "got response from influxd, proceeding"
             return
         fi
+        ping_count=$((ping_count+1))
     done
-    log error "failed to detect influxd startup" ping_attempts ${STARTUP_PING_ATTEMPTS}
+    log error "failed to detect influxd startup" ping_attempts ${ping_count}
     exit 1
 }
 
