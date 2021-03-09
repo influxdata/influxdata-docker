@@ -249,7 +249,7 @@ function init_influxd () {
 
     # Start influxd in the background.
     log info "booting influxd server in the background"
-    INFLUXD_CONFIG_PATH=${init_config} influxd "${@}" &
+    INFLUXD_CONFIG_PATH=${init_config} INFLUXD_HTTP_BIND_ADDRESS="${init_bind_addr}" influxd "${@}" &
     local -r influxd_init_pid="$!"
     trap "handle_signal TERM ${influxd_init_pid}" TERM
     trap "handle_signal INT ${influxd_init_pid}" INT
