@@ -238,18 +238,10 @@ function init_influxd () {
         upgrade_influxd
     fi
 
-    # Generate a config file with a known HTTP port
-    local -r init_config=/tmp/config.yml
-    local -r final_bind_addr="$(influxd print-config --key-name http-bind-address "${@}")"
-    local -r init_bind_addr=":${INFLUXD_INIT_PORT}"
-    if [ "${init_bind_addr}" = "${final_bind_addr}" ]; then
-      log warn "influxd setup binding to same addr as final config, server will be exposed before ready" addr "${init_bind_addr}"
-    fi
-    influxd print-config "${@}" | sed "s#${final_bind_addr}#${init_bind_addr}#" > ${init_config}
-
     # Start influxd in the background.
+    local -r final_bind_addr="$(influxd print-config --key-name http-bind-address "${@}")"
     log info "booting influxd server in the background"
-    INFLUXD_CONFIG_PATH=${init_config} INFLUXD_HTTP_BIND_ADDRESS="${init_bind_addr}" influxd "${@}" &
+    INFLUXD_HTTP_BIND_ADDRESS=":${INFLUXD_INIT_PORT}" influxd "${@}" &
     local -r influxd_init_pid="$!"
     trap "handle_signal TERM ${influxd_init_pid}" TERM
     trap "handle_signal INT ${influxd_init_pid}" INT
