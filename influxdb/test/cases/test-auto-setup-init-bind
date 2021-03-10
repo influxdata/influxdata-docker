@@ -10,7 +10,7 @@ declare -ra docker_run_influxd=(
     docker run -i -d
     --name=${container_name}
     -u $(id -u):influxdb
-    -p 8086:8086
+    -p 8086:3333
     -v ${data}:/var/lib/influxdb2
     -v ${config}:/etc/influxdb2
     -e DOCKER_INFLUXDB_INIT_MODE=setup
@@ -18,7 +18,7 @@ declare -ra docker_run_influxd=(
     -e DOCKER_INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
     -e DOCKER_INFLUXDB_INIT_ORG=${TEST_ORG}
     -e DOCKER_INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
-    -e INFLUXD_HTTP_BIND_ADDRESS=:8086
+    -e INFLUXD_HTTP_BIND_ADDRESS=:3333
     -e INFLUXD_INIT_PORT=9998
     influxdb:${tag} influxd run
 )
