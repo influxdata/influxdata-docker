@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+declare -r SCRIPT_DIR=$(cd $(dirname $0) >/dev/null 2>&1 && pwd)
+source ${SCRIPT_DIR}/common.sh
+
+declare -r tag=$1 container_name=$2 data=$3 config=$4 logs=$5
+
+declare -ra docker_run_influxd=(
+    docker run -i -d
+    --name=${container_name}
+    -u $(id -u):influxdb
+    -p 8086:8086
+    -v ${data}:/var/lib/influxdb2
+    -v ${config}:/etc/influxdb2
+    -e DOCKER_INFLUXDB_INIT_MODE=setup
+    -e DOCKER_INFLUXDB_INIT_USERNAME=${TEST_USER}
+    -e DOCKER_INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
+    -e DOCKER_INFLUXDB_INIT_ORG=${TEST_ORG}
+    -e DOCKER_INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
+    -e INFLUXD_HTTP_BIND_ADDRESS=:8086
+    -e INFLUXD_INIT_PORT=9998
+    influxdb:${tag} influxd run
+)
+
+# Boot the container
+log_msg Booting 2.x container in setup mode
+if ! ${docker_run_influxd[@]} > /dev/null; then
+    log_msg Error: Failed to launch container
+    exit 1
+fi
+wait_container_ready
+
+# Destroy the container
+log_msg Tearing down 2.x container
+docker stop ${container_name} > /dev/null
+docker logs ${container_name} > ${logs}/init-docker-stdout.log 2> ${logs}/init-docker-stderr.log
+docker rm ${container_name} > /dev/null
+
+# Check that setup actually used INFLUXD_INIT_PORT
+log_has () {
+    grep "$2" ${logs}/init-docker-"$1".log > /dev/null
+}
+if ! log_has stdout 'msg=Listening.*transport=http addr=:9998 port=9998'; then
+    log_msg Error: container did not use INFLUXD_INIT_PORT
+    exit 1
+fi
+if ! log_has stderr 'got response from influxd, proceeding'; then
+    log_msg Error: init ping never completed successfully
+    exit 1
+fi
