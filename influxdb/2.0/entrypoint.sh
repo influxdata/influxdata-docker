@@ -238,10 +238,16 @@ function init_influxd () {
         upgrade_influxd
     fi
 
-    # Start influxd in the background.
+    # Capture final bind address, and check it is distinct from init addr
     local -r final_bind_addr="$(influxd print-config --key-name http-bind-address "${@}")"
+    local -r init_bind_addr=":${INFLUXD_INIT_PORT}"
+    if [ "${init_bind_addr}" = "${final_bind_addr}" ]; then
+      log warn "influxd setup binding to same addr as final config, server will be exposed before ready" addr "${init_bind_addr}"
+    fi
+
+    # Start influxd in the background.
     log info "booting influxd server in the background"
-    INFLUXD_HTTP_BIND_ADDRESS=":${INFLUXD_INIT_PORT}" influxd "${@}" &
+    INFLUXD_HTTP_BIND_ADDRESS="${init_bind_addr}" influxd "${@}" &
     local -r influxd_init_pid="$!"
     trap "handle_signal TERM ${influxd_init_pid}" TERM
     trap "handle_signal INT ${influxd_init_pid}" INT
