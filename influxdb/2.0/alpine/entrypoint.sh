@@ -169,8 +169,9 @@ function wait_for_influxd () {
             log info "got response from influxd, proceeding"
             return
         fi
+        ping_count=$((ping_count+1))
     done
-    log error "failed to detect influxd startup" ping_attempts ${STARTUP_PING_ATTEMPTS}
+    log error "failed to detect influxd startup" ping_attempts ${ping_count}
     exit 1
 }
 
@@ -237,18 +238,16 @@ function init_influxd () {
         upgrade_influxd
     fi
 
-    # Generate a config file with a known HTTP port
-    local -r init_config=/tmp/config.yml
+    # Capture final bind address, and check it is distinct from init addr
     local -r final_bind_addr="$(influxd print-config --key-name http-bind-address "${@}")"
     local -r init_bind_addr=":${INFLUXD_INIT_PORT}"
     if [ "${init_bind_addr}" = "${final_bind_addr}" ]; then
       log warn "influxd setup binding to same addr as final config, server will be exposed before ready" addr "${init_bind_addr}"
     fi
-    influxd print-config "${@}" | sed "s#${final_bind_addr}#${init_bind_addr}#" > ${init_config}
 
     # Start influxd in the background.
     log info "booting influxd server in the background"
-    INFLUXD_CONFIG_PATH=${init_config} influxd "${@}" &
+    INFLUXD_HTTP_BIND_ADDRESS="${init_bind_addr}" influxd "${@}" &
     local -r influxd_init_pid="$!"
     trap "handle_signal TERM ${influxd_init_pid}" TERM
     trap "handle_signal INT ${influxd_init_pid}" INT
