@@ -21,7 +21,7 @@ RUN set -eux; \
 	gosu --version && \
 	gosu nobody true
 
-ENV INFLUXDB_VERSION 2.0.4
+ENV INFLUXDB_VERSION 2.0.5
 RUN set -eux && \
     ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     case "${dpkgArch##*-}" in \
