@@ -245,7 +245,7 @@ function init_influxd () {
 
     # Short-circuit if using upgrade mode and user didn't define any custom scripts,
     # to save startup time from booting & shutting down the server.
-    if [ "${DOCKER_INFLUXDB_INIT_MODE}" = upgrade ] && [ ! user_scripts_present ]; then
+    if [ "${DOCKER_INFLUXDB_INIT_MODE}" = upgrade ] && ! user_scripts_present; then
         trap - EXIT
         return
     fi
