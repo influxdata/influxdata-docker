@@ -154,26 +154,21 @@ function upgrade_influxd () {
     set_config_path
 }
 
-# Wait up to a minute for the DB to boot
-declare -r STARTUP_PING_WAIT_SECONDS=2
-declare -r STARTUP_PING_ATTEMPTS=30
-
-# Ping influxd until it responds.
+# Ping influxd until it responds or crashes.
 # Used to block execution until the server is ready to process setup requests.
 function wait_for_influxd () {
     local -r influxd_pid=$1
     local ping_count=0
-    while [ ${ping_count} -lt ${STARTUP_PING_ATTEMPTS} ]; do
-        sleep ${STARTUP_PING_WAIT_SECONDS}
-        log info "pinging influxd..."
+    while kill -0 "${influxd_pid}"; do
+        sleep 1
+        log info "pinging influxd..." ping_attempt ${ping_count}
+        ping_count=$((ping_count+1))
         if influx ping &> /dev/null; then
-            log info "got response from influxd, proceeding"
+            log info "got response from influxd, proceeding" total_pings ${ping_count}
             return
         fi
-        ping_count=$((ping_count+1))
     done
-    log error "failed to detect influxd startup" ping_attempts ${ping_count}
-    handle_signal TERM "${influxd_pid}"
+    log error "influxd crashed during startup" total_pings ${ping_count}
     exit 1
 }
 
