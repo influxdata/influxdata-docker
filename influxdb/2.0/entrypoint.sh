@@ -161,6 +161,7 @@ declare -r STARTUP_PING_ATTEMPTS=30
 # Ping influxd until it responds.
 # Used to block execution until the server is ready to process setup requests.
 function wait_for_influxd () {
+    local -r influxd_pid=$1
     local ping_count=0
     while [ ${ping_count} -lt ${STARTUP_PING_ATTEMPTS} ]; do
         sleep ${STARTUP_PING_WAIT_SECONDS}
@@ -172,6 +173,7 @@ function wait_for_influxd () {
         ping_count=$((ping_count+1))
     done
     log error "failed to detect influxd startup" ping_attempts ${ping_count}
+    handle_signal TERM "${influxd_pid}"
     exit 1
 }
 
@@ -253,7 +255,7 @@ function init_influxd () {
     trap "handle_signal INT ${influxd_init_pid}" INT
 
     export INFLUX_HOST="http://localhost:${INFLUXD_INIT_PORT}"
-    wait_for_influxd
+    wait_for_influxd "${influxd_init_pid}"
 
     # Use the influx CLI to create an initial user/org/bucket.
     if [ "${DOCKER_INFLUXDB_INIT_MODE}" = setup ]; then
