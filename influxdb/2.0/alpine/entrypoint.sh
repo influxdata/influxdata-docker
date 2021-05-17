@@ -209,6 +209,14 @@ function set_init_resource_ids () {
 # for execution after initial setup/upgrade.
 declare -r USER_SCRIPT_DIR=/docker-entrypoint-initdb.d
 
+# Check if user-defined setup scripts have been mounted into the container.
+function user_scripts_present () {
+    if [ ! -d ${USER_SCRIPT_DIR} ]; then
+        return 1
+    fi
+    test -n "$(find ${USER_SCRIPT_DIR} -name "*.sh" -type f -executable)"
+}
+
 # Execute all shell files mounted into the expected path for user-defined startup scripts.
 function run_user_scripts () {
     if [ -d ${USER_SCRIPT_DIR} ]; then
@@ -238,6 +246,13 @@ function init_influxd () {
     # boltdb file will be generated and cause conflicts.
     if [ "${DOCKER_INFLUXDB_INIT_MODE}" = upgrade ]; then
         upgrade_influxd
+    fi
+
+    # Short-circuit if using upgrade mode and user didn't define any custom scripts,
+    # to save startup time from booting & shutting down the server.
+    if [ "${DOCKER_INFLUXDB_INIT_MODE}" = upgrade ] && [ ! user_scripts_present ]; then
+        trap - EXIT
+        return
     fi
 
     # Capture final bind address, and check it is distinct from init addr
