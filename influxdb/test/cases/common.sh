@@ -40,10 +40,15 @@ function log_msg () {
 }
 
 function wait_container_ready () {
+    wait_container_ready_at_url localhost:8086/health
+}
+
+function wait_container_ready_at_url () {
+    local -r url=$1
     local attempt_count=0
 
     while [ ${attempt_count} -lt ${ATTEMPTS} ]; do
-        if curl -s localhost:8086/health >/dev/null; then
+        if curl -k -s "${url}" >/dev/null; then
             return 0
         fi
         sleep 2
@@ -54,7 +59,7 @@ function wait_container_ready () {
 }
 
 function extract_token () {
-    docker exec -i ${1} influx auth list --user ${TEST_USER} --hide-headers | cut -f 3
+    docker exec -i ${1} influx auth list --skip-verify --user ${TEST_USER} --hide-headers | cut -f 3
 }
 
 function join_array () {

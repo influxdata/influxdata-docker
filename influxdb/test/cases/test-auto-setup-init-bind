@@ -18,9 +18,18 @@ declare -ra docker_run_influxd=(
     -e DOCKER_INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
     -e DOCKER_INFLUXDB_INIT_ORG=${TEST_ORG}
     -e DOCKER_INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
-    -e INFLUXD_HTTP_BIND_ADDRESS=:3333
+    -e INFLUXD_HTTP_BIND_ADDRESS=:2222
     -e INFLUXD_INIT_PORT=9998
     influxdb:${tag} influxd run
+    # NOTE: The CLI arg here is redundant with the INFLUXD_HTTP_BIND_ADDRESS env var above.
+    # We include both because `entrypoint.sh` needs to cover both when overriding the bind-
+    # address used by the "init" instance of the server. The initial implementation of the
+    # script covered the CLI arg, but missed the env var. A follow-up fix covered the env
+    # var but dropped coverage for the CLI arg. Now we test for both.
+    #
+    # The CLI arg is expected to "win" once the final server boots up, according to our config
+    # precedence rules.
+    --http-bind-address ":3333"
 )
 
 # Boot the container
