@@ -154,24 +154,21 @@ function upgrade_influxd () {
     set_config_path
 }
 
-# Wait up to a minute for the DB to boot
-declare -r STARTUP_PING_WAIT_SECONDS=2
-declare -r STARTUP_PING_ATTEMPTS=30
-
-# Ping influxd until it responds.
+# Ping influxd until it responds or crashes.
 # Used to block execution until the server is ready to process setup requests.
 function wait_for_influxd () {
+    local -r influxd_pid=$1
     local ping_count=0
-    while [ ${ping_count} -lt ${STARTUP_PING_ATTEMPTS} ]; do
-        sleep ${STARTUP_PING_WAIT_SECONDS}
-        log info "pinging influxd..."
+    while kill -0 "${influxd_pid}"; do
+        sleep 1
+        log info "pinging influxd..." ping_attempt ${ping_count}
+        ping_count=$((ping_count+1))
         if influx ping &> /dev/null; then
-            log info "got response from influxd, proceeding"
+            log info "got response from influxd, proceeding" total_pings ${ping_count}
             return
         fi
-        ping_count=$((ping_count+1))
     done
-    log error "failed to detect influxd startup" ping_attempts ${ping_count}
+    log error "influxd crashed during startup" total_pings ${ping_count}
     exit 1
 }
 
@@ -207,6 +204,14 @@ function set_init_resource_ids () {
 # for execution after initial setup/upgrade.
 declare -r USER_SCRIPT_DIR=/docker-entrypoint-initdb.d
 
+# Check if user-defined setup scripts have been mounted into the container.
+function user_scripts_present () {
+    if [ ! -d ${USER_SCRIPT_DIR} ]; then
+        return 1
+    fi
+    test -n "$(find ${USER_SCRIPT_DIR} -name "*.sh" -type f -executable)"
+}
+
 # Execute all shell files mounted into the expected path for user-defined startup scripts.
 function run_user_scripts () {
     if [ -d ${USER_SCRIPT_DIR} ]; then
@@ -238,6 +243,13 @@ function init_influxd () {
         upgrade_influxd
     fi
 
+    # Short-circuit if using upgrade mode and user didn't define any custom scripts,
+    # to save startup time from booting & shutting down the server.
+    if [ "${DOCKER_INFLUXDB_INIT_MODE}" = upgrade ] && ! user_scripts_present; then
+        trap - EXIT
+        return
+    fi
+
     # Capture final bind address, and check it is distinct from init addr
     local -r final_bind_addr="$(influxd print-config --key-name http-bind-address "${@}")"
     local -r init_bind_addr=":${INFLUXD_INIT_PORT}"
@@ -253,7 +265,7 @@ function init_influxd () {
     trap "handle_signal INT ${influxd_init_pid}" INT
 
     export INFLUX_HOST="http://localhost:${INFLUXD_INIT_PORT}"
-    wait_for_influxd
+    wait_for_influxd "${influxd_init_pid}"
 
     # Use the influx CLI to create an initial user/org/bucket.
     if [ "${DOCKER_INFLUXDB_INIT_MODE}" = setup ]; then
