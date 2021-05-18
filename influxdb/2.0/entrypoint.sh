@@ -250,18 +250,25 @@ function init_influxd () {
         return
     fi
 
-    # Generate a config file with a known HTTP port, and TLS disabled.
-    local -r init_config=/tmp/config.yml
     local -r final_bind_addr="$(influxd print-config --key-name http-bind-address "${@}")"
     local -r init_bind_addr=":${INFLUXD_INIT_PORT}"
     if [ "${init_bind_addr}" = "${final_bind_addr}" ]; then
       log warn "influxd setup binding to same addr as final config, server will be exposed before ready" addr "${init_bind_addr}"
     fi
-    influxd print-config "${@}" | sed "s#${final_bind_addr}#${init_bind_addr}#" > "${init_config}"
+    local final_host_scheme="http"
+    if [ "$(influxd print-config --key-name tls-cert "${@}")" != '""' ] && [ "$(influxd print-config --key-name tls-key "${@}")" != '""' ]; then
+        final_host_scheme="https"
+    fi
+
+    # Generate a config file with a known HTTP port, and TLS disabled.
+    local -r init_config=/tmp/config.yml
+    influxd print-config "${@}" | \
+        sed -e "s#${final_bind_addr}#${init_bind_addr}#" -e '/^tls/d' > \
+        "${init_config}"
 
     # Start influxd in the background.
     log info "booting influxd server in the background"
-    INFLUXD_CONFIG_PATH="${init_config}" INFLUXD_HTTP_BIND_ADDRESS="${init_bind_addr}" influxd &
+    INFLUXD_CONFIG_PATH="${init_config}" INFLUXD_HTTP_BIND_ADDRESS="${init_bind_addr}" INFLUXD_TLS_CERT='' INFLUXD_TLS_KEY='' influxd &
     local -r influxd_init_pid="$!"
     trap "handle_signal TERM ${influxd_init_pid}" TERM
     trap "handle_signal INT ${influxd_init_pid}" INT
@@ -284,7 +291,7 @@ function init_influxd () {
 
     # Rewrite the ClI configs to point at the server's final HTTP address.
     local -r final_port="$(echo "${final_bind_addr}" | sed -E 's#[^:]*:(.*)#\1#')"
-    sed -i "s#http://localhost:${INFLUXD_INIT_PORT}#http://localhost:${final_port}#g" "${INFLUX_CONFIGS_PATH}"
+    sed -i "s#http://localhost:${INFLUXD_INIT_PORT}#${final_host_scheme}://localhost:${final_port}#g" "${INFLUX_CONFIGS_PATH}"
 }
 
 # Run influxd, with optional setup logic.
