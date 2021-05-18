@@ -298,6 +298,16 @@ function influxd_main () {
     exec influxd "${@}"
 }
 
+# Check if the --help or -h flag is set in a list of CLI args.
+function check_help_flag () {
+  for arg in "${@}"; do
+      if [ "${arg}" = --help ] || [ "${arg}" = -h ]; then
+          return 0
+      fi
+  done
+  return 1
+}
+
 function main () {
     # Ensure INFLUXD_CONFIG_PATH is set.
     # We do this even if we're not running the main influxd server so subcommands
@@ -320,12 +330,15 @@ function main () {
         shift 1
     fi
 
-    # Configure logging for our wrapper.
-    set_global_log_level "${@}"
-    # Configure data paths used across functions.
-    set_data_paths "${@}"
-    # Ensure volume directories exist w/ correct permissions.
-    create_directories
+
+    if ! check_help_flag "${@}"; then
+        # Configure logging for our wrapper.
+        set_global_log_level "${@}"
+        # Configure data paths used across functions.
+        set_data_paths "${@}"
+        # Ensure volume directories exist w/ correct permissions.
+        create_directories
+    fi
 
     if [ "$(id -u)" = 0 ]; then
         exec gosu influxdb "$BASH_SOURCE" "${@}"
