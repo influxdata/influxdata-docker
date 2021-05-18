@@ -18,9 +18,9 @@ declare -ra docker_run_influxd=(
     -e DOCKER_INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
     -e DOCKER_INFLUXDB_INIT_ORG=${TEST_ORG}
     -e DOCKER_INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
-    -e INFLUXD_HTTP_BIND_ADDRESS=:3333
+    -e INFLUXD_HTTP_BIND_ADDRESS=:2222
     -e INFLUXD_INIT_PORT=9998
-    influxdb:${tag} influxd run
+    influxdb:${tag} influxd run --http-bind-address ":3333"
 )
 
 # Boot the container
