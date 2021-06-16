@@ -354,7 +354,7 @@ function main () {
     fi
 
     if [ "$(id -u)" = 0 ]; then
-        exec gosu influxdb "$BASH_SOURCE" "${@}"
+        exec su-exec influxdb "$BASH_SOURCE" "${@}"
         return
     fi
 
