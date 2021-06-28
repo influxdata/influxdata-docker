@@ -4,21 +4,19 @@ RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache tzdata bash ca-certificates && \
     update-ca-certificates
 
-ENV INFLUXDB_VERSION 1.7.11-c1.7.11
+ENV INFLUXDB_VERSION 1.9.2-c1.9.2
 RUN set -ex && \
-    mkdir ~/.gnupg; \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
     apk add --no-cache --virtual .build-deps wget gnupg tar && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
     do \
         gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
     done && \
-    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc && \
-    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
-    gpg --batch --verify influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}_linux_amd64.tar.gz.asc && \
+    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}_linux_amd64.tar.gz && \
+    gpg --batch --verify influxdb-meta-${INFLUXDB_VERSION}_linux_amd64.tar.gz.asc influxdb-meta-${INFLUXDB_VERSION}_linux_amd64.tar.gz && \
     mkdir -p /usr/src && \
-    tar -C /usr/src -xzf influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    tar -C /usr/src -xzf influxdb-meta-${INFLUXDB_VERSION}_linux_amd64.tar.gz && \
     rm -f /usr/src/influxdb-*/influxdb-meta.conf && \
     chmod +x /usr/src/influxdb-*/* && \
     cp -a /usr/src/influxdb-*/* /usr/bin/ && \
