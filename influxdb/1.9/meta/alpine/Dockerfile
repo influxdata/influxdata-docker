@@ -4,7 +4,7 @@ RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache tzdata bash ca-certificates && \
     update-ca-certificates
 
-ENV INFLUXDB_VERSION 1.9.2-c1.9.2
+ENV INFLUXDB_VERSION 1.9.3-c1.9.3
 RUN set -ex && \
     apk add --no-cache --virtual .build-deps wget gnupg tar && \
     for key in \
@@ -20,7 +20,8 @@ RUN set -ex && \
     rm -f /usr/src/influxdb-*/influxdb-meta.conf && \
     chmod +x /usr/src/influxdb-*/* && \
     cp -a /usr/src/influxdb-*/* /usr/bin/ && \
-    rm -rf *.tar.gz* /usr/src /root/.gnupg && \
+    (rm -rf /root/.gnupg || true) && \
+    rm -rf *.tar.gz* /usr/src && \
     apk del .build-deps
 COPY influxdb-meta.conf /etc/influxdb/influxdb-meta.conf
 
