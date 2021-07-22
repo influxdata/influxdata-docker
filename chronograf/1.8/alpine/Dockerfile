@@ -1,10 +1,10 @@
-FROM alpine:3.12
+FROM alpine:3.13
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache ca-certificates && \
     update-ca-certificates
 
-ENV CHRONOGRAF_VERSION 1.8.8
+ENV CHRONOGRAF_VERSION 1.8.10
 
 RUN set -ex && \
     mkdir ~/.gnupg; \
