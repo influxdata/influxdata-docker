@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+declare -r SCRIPT_DIR=$(cd $(dirname $0) >/dev/null 2>&1 && pwd)
+source ${SCRIPT_DIR}/common.sh
+
+declare -r tag=$1 container_name=$2 data=$3 config=$4 logs=$5
+
+declare -a docker_run_influxd=(
+    docker run -i -d
+    --name=${container_name}
+    -u $(id -u):influxdb
+    -p 8086:8086
+    -v ${config}:/etc/influxdb2
+    -v ${data}:/var/lib/influxdb2
+    -e DOCKER_INFLUXDB_INIT_MODE=setup
+    -e DOCKER_INFLUXDB_INIT_USERNAME=${TEST_USER}
+    -e DOCKER_INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
+    -e DOCKER_INFLUXDB_INIT_ORG=${TEST_ORG}
+    -e DOCKER_INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
+    influxdb:${tag} influxd
+)
+
+log_msg Booting 2.x container in setup mode
+if ! ${docker_run_influxd[@]} > /dev/null; then
+    log_msg Error: Failed to launch container
+    exit 1
+fi
+wait_container_ready
+
+# Destroy the container
+log_msg Tearing down 2.x container
+docker stop ${container_name} > /dev/null
+docker logs ${container_name} > ${logs}/init-docker-stdout.log 2> ${logs}/init-docker-stderr.log
+docker rm ${container_name} > /dev/null
+
+if [ ! -f ${config}/influx-configs ]; then
+    log_msg Error: CLI configs not persisted to host directory
+    exit 1
+fi
+rm -rf ${data}/*
+
+if ! grep -q '\[default\]' ${config}/influx-configs; then
+    log_msg Error: CLI configs missing "'default'" entry
+    exit 1
+fi
+
+# Create a new container using the same mount-points and env, with a different CLI config name.
+docker_run_influxd=(
+    docker run -i -d
+    --name=${container_name}
+    -u $(id -u):influxdb
+    -p 8086:8086
+    -v ${config}:/etc/influxdb2
+    -v ${data}:/var/lib/influxdb2
+    -e DOCKER_INFLUXDB_INIT_MODE=setup
+    -e DOCKER_INFLUXDB_INIT_USERNAME=${TEST_USER}
+    -e DOCKER_INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
+    -e DOCKER_INFLUXDB_INIT_ORG=${TEST_ORG}
+    -e DOCKER_INFLUXDB_INIT_BUCKET=${TEST_BUCKET}
+    -e DOCKER_INFLUXDB_INIT_CLI_CONFIG_NAME=test
+    influxdb:${tag} influxd
+)
+
+log_msg Booting 2.x container in setup mode
+if ! ${docker_run_influxd[@]} > /dev/null; then
+    log_msg Error: Failed to launch container
+    exit 1
+fi
+wait_container_ready
+
+if ! grep -q '\[test\]' ${config}/influx-configs; then
+    log_msg Error: CLI configs missing "'test'" entry
+    exit 1
+fi
