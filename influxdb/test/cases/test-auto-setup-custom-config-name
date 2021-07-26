@@ -40,6 +40,11 @@ if [ ! -f ${config}/influx-configs ]; then
 fi
 rm -rf ${data}/*
 
+if ! grep -q '\[default\]' ${config}/influx-configs; then
+    log_msg Error: CLI configs missing "'default'" entry
+    exit 1
+fi
+
 # Create a new container using the same mount-points and env, with a different CLI config name.
 docker_run_influxd=(
     docker run -i -d
@@ -63,3 +68,8 @@ if ! ${docker_run_influxd[@]} > /dev/null; then
     exit 1
 fi
 wait_container_ready
+
+if ! grep -q '\[test\]' ${config}/influx-configs; then
+    log_msg Error: CLI configs missing "'test'" entry
+    exit 1
+fi
