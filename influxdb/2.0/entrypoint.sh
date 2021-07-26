@@ -184,6 +184,7 @@ function setup_influxd () {
         --password "${DOCKER_INFLUXDB_INIT_PASSWORD}"
         --org "${DOCKER_INFLUXDB_INIT_ORG}"
         --bucket "${DOCKER_INFLUXDB_INIT_BUCKET}"
+        --name "${DOCKER_INFLUXDB_INIT_CLI_CONFIG_NAME}"
     )
     if [ -n "${DOCKER_INFLUXDB_INIT_RETENTION}" ]; then
         setup_args=("${setup_args[@]}" --retention "${DOCKER_INFLUXDB_INIT_RETENTION}")
