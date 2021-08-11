@@ -2,9 +2,10 @@
   "name": "chronograf",
   "maintainers": [
     "Jonathan A. Sternberg <jonathan@influxdata.com> (@jsternberg)",
-    "Bucky Schwarz <bucky@influxdata.com> (@hoorayimhelping)"
+    "Bucky Schwarz <bucky@influxdata.com> (@hoorayimhelping)",
+    "Cody Shepherd <cody@influxdata.com> (@codyshepherd)"
   ],
-  "versions": ["1.6", "1.7", "1.8"],
+  "versions": ["1.6", "1.7", "1.8", "1.9"],
   "architectures": [
     "amd64",
     "arm32v7",
