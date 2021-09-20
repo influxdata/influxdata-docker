@@ -5,9 +5,9 @@
     "Steven Soroka <ssoroka@influxdata.com> (@ssoroka)"
   ],
   "versions": [
-    "1.17",
     "1.18",
-    "1.19"
+    "1.19",
+    "1.20"
   ],
   "architectures": [
     "amd64",
