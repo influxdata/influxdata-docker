@@ -20,9 +20,7 @@ RUN set -ex && \
     gpg --batch --verify kapacitor-${KAPACITOR_VERSION}_linux_amd64.tar.gz.asc kapacitor-${KAPACITOR_VERSION}_linux_amd64.tar.gz && \
     mkdir -p /usr/src && \
     tar -C /usr/src -xzf kapacitor-${KAPACITOR_VERSION}_linux_amd64.tar.gz && \
-    rm -f /usr/src/kapacitor-*/kapacitor.conf && \
-    chmod +x /usr/src/kapacitor-*/* && \
-    cp -a /usr/src/kapacitor-*/* /usr/bin/ && \
+    cp -ar /usr/src/kapacitor-*/* / && \
     gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
     apk del .build-deps
