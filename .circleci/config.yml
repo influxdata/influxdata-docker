@@ -5,7 +5,10 @@ workflows:
   ci:
     jobs:
       - build
-      - test-influxdb
+      - test-influxdb:
+          matrix:
+            parameters:
+              version: ["2.0", "2.1"]
 
 jobs:
   build:
@@ -18,10 +21,14 @@ jobs:
 
   test-influxdb:
     machine: true
+    parameters:
+      version:
+        type: string
+        enum: ["2.0", "2.1"]
     steps:
       - checkout
       - run: sudo apt-get update && sudo apt-get install -y jq
-      - run: bash influxdb/test/test-2x-e2e.sh
+      - run: bash influxdb/test/test-2x-e2e.sh << parameters.version >>
       - store_artifacts:
           path: influxdb/test/logs
           destination: container-logs
