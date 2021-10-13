@@ -29,6 +29,10 @@ RUN set -ex && \
 
 EXPOSE 8125/udp 8092/udp 8094
 
+RUN addgroup -S telegraf
+RUN adduser -S telegraf -G telegraf
+USER telegraf
+
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["telegraf"]
