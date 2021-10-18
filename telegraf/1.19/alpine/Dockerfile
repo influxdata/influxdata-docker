@@ -25,12 +25,13 @@ RUN set -ex && \
     cp -a /usr/src/telegraf*/usr/bin/telegraf /usr/bin/ && \
     gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
-    apk del .build-deps
+    apk del .build-deps && \
+    addgroup -S telegraf && \
+    adduser -S telegraf -G telegraf && \
+    chown -R telegraf:telegraf /etc/telegraf
 
 EXPOSE 8125/udp 8092/udp 8094
 
-RUN addgroup -S telegraf
-RUN adduser -S telegraf -G telegraf
 USER telegraf
 
 COPY entrypoint.sh /entrypoint.sh
