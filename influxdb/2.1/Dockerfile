@@ -42,7 +42,7 @@ RUN set -eux && \
     influxd version
 
 # Install the influx CLI
-ENV INFLUX_CLI_VERSION 2.1.1
+ENV INFLUX_CLI_VERSION 2.2.0
 RUN set -eux && \
     ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     case "${dpkgArch##*-}" in \
