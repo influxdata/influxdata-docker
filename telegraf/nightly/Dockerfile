@@ -13,7 +13,7 @@ RUN set -ex && \
         gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
     done
 
-ENV TELEGRAF_VERSION 1.20.2
+ENV TELEGRAF_VERSION nightly
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     case "${dpkgArch##*-}" in \
       amd64) ARCH='amd64';; \
@@ -22,11 +22,11 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
       armel) ARCH='armel';; \
       *)     echo "Unsupported architecture: ${dpkgArch}"; exit 1;; \
     esac && \
-    wget --no-verbose https://dl.influxdata.com/telegraf/releases/telegraf_nightly_${ARCH}.deb.asc && \
-    wget --no-verbose https://dl.influxdata.com/telegraf/releases/telegraf_nightly_${ARCH}.deb && \
-    gpg --batch --verify telegraf_nightly_${ARCH}.deb.asc telegraf_nightly_${ARCH}.deb && \
-    dpkg -i telegraf_nightly_${ARCH}.deb && \
-    rm -f telegraf_nightly_${ARCH}.deb*
+    wget --no-verbose https://dl.influxdata.com/telegraf/releases/telegraf_${TELEGRAF_VERSION}_${ARCH}.deb.asc && \
+    wget --no-verbose https://dl.influxdata.com/telegraf/releases/telegraf_${TELEGRAF_VERSION}_${ARCH}.deb && \
+    gpg --batch --verify telegraf_${TELEGRAF_VERSION}_${ARCH}.deb.asc telegraf_${TELEGRAF_VERSION}_${ARCH}.deb && \
+    dpkg -i telegraf_${TELEGRAF_VERSION}_${ARCH}.deb && \
+    rm -f telegraf_${TELEGRAF_VERSION}_${ARCH}.deb*
 
 EXPOSE 8125/udp 8092/udp 8094
 
