@@ -8,24 +8,16 @@ RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors 
 ENV TELEGRAF_VERSION nightly
 
 RUN set -ex && \
-    mkdir ~/.gnupg; \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
-    apk add --no-cache --virtual .build-deps wget gnupg tar && \
-    for key in \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
-    do \
-        gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
-    done && \
+    apk add --no-cache --virtual .build-deps wget tar && \
     wget --no-verbose https://dl.influxdata.com/telegraf/nightlies/telegraf-static-${TELEGRAF_VERSION}_linux_amd64.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/telegraf/nightlies/telegraf-static-${TELEGRAF_VERSION}_linux_amd64.tar.gz && \
-    gpg --batch --verify telegraf-static-${TELEGRAF_VERSION}_linux_amd64.tar.gz.asc telegraf-static-${TELEGRAF_VERSION}_linux_amd64.tar.gz && \
     mkdir -p /usr/src /etc/telegraf && \
     tar -C /usr/src -xzf telegraf-static-${TELEGRAF_VERSION}_linux_amd64.tar.gz && \
     mv /usr/src/telegraf*/etc/telegraf/telegraf.conf /etc/telegraf/ && \
     mkdir /etc/telegraf/telegraf.d && \
     cp -a /usr/src/telegraf*/usr/bin/telegraf /usr/bin/ && \
     gpgconf --kill all && \
-    rm -rf *.tar.gz* /usr/src /root/.gnupg && \
+    rm -rf *.tar.gz* /usr/src && \
     apk del .build-deps && \
     addgroup -S telegraf && \
     adduser -S telegraf -G telegraf && \
