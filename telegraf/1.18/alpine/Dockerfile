@@ -1,7 +1,7 @@
 FROM alpine:3.14
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata && \
+RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata su-exec && \
     update-ca-certificates
 
 ENV TELEGRAF_VERSION 1.18.3
@@ -31,8 +31,6 @@ RUN set -ex && \
     chown -R telegraf:telegraf /etc/telegraf
 
 EXPOSE 8125/udp 8092/udp 8094
-
-USER telegraf
 
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
