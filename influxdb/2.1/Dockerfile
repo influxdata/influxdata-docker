@@ -22,7 +22,7 @@ RUN set -eux; \
 	gosu nobody true
 
 # Install the infuxd server
-ENV INFLUXDB_VERSION 2.0.9
+ENV INFLUXDB_VERSION 2.1.0
 RUN set -eux && \
     ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     case "${dpkgArch##*-}" in \
