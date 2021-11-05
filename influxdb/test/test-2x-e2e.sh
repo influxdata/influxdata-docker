@@ -50,7 +50,7 @@ function cleanup () {
         docker stop ${leftover_containers[@]}
         docker rm ${leftover_containers[@]}
     fi
-    docker image rm -f influxdb:2.0-${1} influxdb:2.0-alpine-${1}
+    docker image rm -f influxdb:${1}-${2} influxdb:${1}-alpine-${2}
 }
 
 #######################
@@ -58,14 +58,21 @@ function cleanup () {
 #######################
 
 function main () {
+    if [[ $# = 0 ]]; then
+        >&2 echo Usage: $0 '<minor-version>' '<test-case>...'
+        exit 1
+    fi
+    local -r version=$1
+    shift
+
     ensure_jq
 
     local -r suffix=$(tag_suffix)
-    trap "cleanup ${suffix}" EXIT
+    trap "cleanup ${version} ${suffix}" EXIT
 
     log_msg Building test images
-    docker build -t influxdb:2.0-${suffix} ${IMG_DIR}/2.0
-    docker build -t influxdb:2.0-alpine-${suffix} ${IMG_DIR}/2.0/alpine
+    docker build -t influxdb:${version}-${suffix} ${IMG_DIR}/${version}
+    docker build -t influxdb:${version}-alpine-${suffix} ${IMG_DIR}/${version}/alpine
 
     rm -rf ${TMP} ${LOGS}
     mkdir -p ${TMP} ${LOGS}
@@ -83,7 +90,7 @@ function main () {
             continue
         fi
 
-        for prefix in 2.0 2.0-alpine; do
+        for prefix in ${version} ${version}-alpine; do
             # Define standard variables for the test case.
             local tag=${prefix}-${suffix}
             local container=${tc}_${suffix}
