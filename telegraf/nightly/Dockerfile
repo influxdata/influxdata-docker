@@ -13,13 +13,11 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
       armel) ARCH='armel';; \
       *)     echo "Unsupported architecture: ${dpkgArch}"; exit 1;; \
     esac && \
-    wget --no-verbose https://dl.influxdata.com/telegraf/releases/telegraf_${TELEGRAF_VERSION}_${ARCH}.deb && \
+    wget --no-verbose https://dl.influxdata.com/telegraf/nightlies/telegraf_${TELEGRAF_VERSION}_${ARCH}.deb && \
     dpkg -i telegraf_${TELEGRAF_VERSION}_${ARCH}.deb && \
     rm -f telegraf_${TELEGRAF_VERSION}_${ARCH}.deb*
 
 EXPOSE 8125/udp 8092/udp 8094
-
-USER telegraf
 
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
