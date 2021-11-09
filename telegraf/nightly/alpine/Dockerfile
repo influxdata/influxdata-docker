@@ -14,7 +14,6 @@ RUN set -ex && \
     mv /usr/src/telegraf*/etc/telegraf/telegraf.conf /etc/telegraf/ && \
     mkdir /etc/telegraf/telegraf.d && \
     cp -a /usr/src/telegraf*/usr/bin/telegraf /usr/bin/ && \
-    gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src && \
     apk del .build-deps && \
     addgroup -S telegraf && \
