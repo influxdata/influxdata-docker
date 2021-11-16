@@ -102,7 +102,7 @@ function ensure_init_vars_set () {
 # the DB is already full set up.
 function cleanup_influxd () {
     log warn "cleaning bolt and engine files to prevent conflicts on retry" bolt_path "${BOLT_PATH}" engine_path "${ENGINE_PATH}"
-    rm -rf "${BOLT_PATH}" "${ENGINE_PATH}"
+    rm -rf "${BOLT_PATH}" "${ENGINE_PATH}/"*
 }
 
 # Upgrade V1 data into the V2 format using influxd upgrade.
