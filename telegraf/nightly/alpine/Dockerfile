@@ -14,8 +14,7 @@ RUN set -ex && \
     mv /usr/src/telegraf*/etc/telegraf/telegraf.conf /etc/telegraf/ && \
     mkdir /etc/telegraf/telegraf.d && \
     cp -a /usr/src/telegraf*/usr/bin/telegraf /usr/bin/ && \
-    setcap cap_net_raw+ep /usr/bin/telegraf && \
-    setcap cap_net_bind_service+ep /usr/bin/telegraf && \
+    setcap cap_net_raw,cap_net_bind_service+ep /usr/bin/telegraf && \
     rm -rf *.tar.gz* /usr/src && \
     apk del .build-deps && \
     addgroup -S telegraf && \
