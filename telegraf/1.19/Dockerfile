@@ -27,7 +27,7 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     gpg --batch --verify telegraf_${TELEGRAF_VERSION}-1_${ARCH}.deb.asc telegraf_${TELEGRAF_VERSION}-1_${ARCH}.deb && \
     dpkg -i telegraf_${TELEGRAF_VERSION}-1_${ARCH}.deb && \
     setcap cap_net_raw+ep /usr/bin/telegraf && \
-    setcap net_bind_service+ep /usr/bin/telegraf && \
+    setcap cap_net_bind_service+ep /usr/bin/telegraf && \
     rm -f telegraf_${TELEGRAF_VERSION}-1_${ARCH}.deb*
 
 EXPOSE 8125/udp 8092/udp 8094
