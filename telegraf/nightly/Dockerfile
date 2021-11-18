@@ -15,6 +15,8 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     esac && \
     wget --no-verbose https://dl.influxdata.com/telegraf/nightlies/telegraf_${TELEGRAF_VERSION}_${ARCH}.deb && \
     dpkg -i telegraf_${TELEGRAF_VERSION}_${ARCH}.deb && \
+    setcap cap_net_raw+ep /usr/bin/telegraf && \
+    setcap net_bind_service+ep /usr/bin/telegraf && \
     rm -f telegraf_${TELEGRAF_VERSION}_${ARCH}.deb*
 
 EXPOSE 8125/udp 8092/udp 8094
