@@ -1,6 +1,38 @@
 #!/bin/bash
 set -eo pipefail
 
+
+## READ ME
+##
+## This script handles a few use-cases:
+##   1. Running arbitrary shell commands other than `influxd`
+##   2. Running subcommands of `influxd` other than `run`
+##   3. Running `influxd run` with no auto-setup or auto-upgrade behavior
+##   4. Running `influxd` with automated setup of a fresh 2.x DB
+##   5. Running `influxd` with automated upgrade from a 1.x DB
+##
+## Use-cases 4 and 5 both optionally support running user-mounted scripts against the
+## initialized DB to perform arbitrary setup logic.
+##
+## Use-case 1 runs as root (the container's default user). All other use-cases
+## run as a non-root user. To support this, the script attempts to handle chown-ing
+## the data directories specified in config/env/CLI flags. We do this even for
+## use-case 2 so that commands like `influxd inspect` which modify files in the data
+## directory don't create files will later be inaccessible to the main `influxd run`
+## process.
+##
+## Use-case 4 requires booting a temporary instance of `influxd` so we can access the
+## server's HTTP API. This script handles tracking the PID of that instance and shutting
+## it down appropriately. The instance is booted on a port other than what's specified in
+## config. We do this so:
+##   1. We can ignore any TLS settings in config while performing initial setup calls
+##   2. We don't have to worry about users accessing the DB before it's fully initialized
+##
+## Use-case 5 requires booting a temporary instance only when the user has mounted setup scripts.
+## If no scripts are present, we can `upgrade` and then immediately boot the server on the
+## user-configured port.
+
+
 # Do our best to match the logging requested by the user running the container.
 declare -rA LOG_LEVELS=([error]=0 [warn]=1 [info]=2 [debug]=3)
 declare LOG_LEVEL=error
