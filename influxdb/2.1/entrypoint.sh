@@ -210,6 +210,12 @@ function wait_for_influxd () {
 
 # Create an initial user/org/bucket in the DB using the influx CLI.
 function setup_influxd () {
+    configs=$(influx config list --hide-headers | perl -lane 'while (/^\**\s+([a-zA-Z0-9]+)\s+.*$/g) {print $1}')
+    if [[ "$configs" =~ "${DOCKER_INFLUXDB_INIT_CLI_CONFIG_NAME}" ]]; then
+        log warn "config already exists with that name, ignoring DOCKER_INFLUXDB_INIT_* variables"
+        return 0
+    fi
+
     local -a setup_args=(
         --force
         --username "${DOCKER_INFLUXDB_INIT_USERNAME}"
