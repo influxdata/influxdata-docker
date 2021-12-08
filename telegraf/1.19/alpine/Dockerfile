@@ -1,7 +1,7 @@
 FROM alpine:3.14
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata su-exec && \
+RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata su-exec libcap && \
     update-ca-certificates
 
 ENV TELEGRAF_VERSION 1.19.3
@@ -23,7 +23,6 @@ RUN set -ex && \
     mv /usr/src/telegraf*/etc/telegraf/telegraf.conf /etc/telegraf/ && \
     mkdir /etc/telegraf/telegraf.d && \
     cp -a /usr/src/telegraf*/usr/bin/telegraf /usr/bin/ && \
-    setcap cap_net_raw,cap_net_bind_service+ep /usr/bin/telegraf && \
     gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
     apk del .build-deps && \

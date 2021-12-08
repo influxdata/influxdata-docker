@@ -1,7 +1,7 @@
 FROM buildpack-deps:buster-curl
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends iputils-ping snmp procps lm-sensors && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends iputils-ping snmp procps lm-sensors libcap2-bin && \
     rm -rf /var/lib/apt/lists/*
 
 ENV TELEGRAF_VERSION nightly
@@ -15,7 +15,6 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     esac && \
     wget --no-verbose https://dl.influxdata.com/telegraf/nightlies/telegraf_${TELEGRAF_VERSION}_${ARCH}.deb && \
     dpkg -i telegraf_${TELEGRAF_VERSION}_${ARCH}.deb && \
-    setcap cap_net_raw,cap_net_bind_service+ep /usr/bin/telegraf && \
     rm -f telegraf_${TELEGRAF_VERSION}_${ARCH}.deb*
 
 EXPOSE 8125/udp 8092/udp 8094
