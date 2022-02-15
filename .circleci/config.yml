@@ -13,14 +13,15 @@ workflows:
 jobs:
   build:
     docker:
-      - image: cimg/go:1.15.6
+      - image: cimg/go:1.17
     steps:
       - checkout
       - setup_remote_docker
       - run: bash circle-test.sh
 
   test-influxdb:
-    machine: true
+    machine:
+      image: ubuntu-2004:202201-02
     parameters:
       version:
         type: string
