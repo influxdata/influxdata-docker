@@ -1,10 +1,34 @@
-version: 2
+version: 2.1
+
+workflows:
+  version: 2
+  ci:
+    jobs:
+      - build
+      - test-influxdb:
+          matrix:
+            parameters:
+              version: ["2.0", "2.1"]
+
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.11
-    working_directory: /go/src/github.com/influxdata/influxdata-docker
+      - image: cimg/go:1.15.6
     steps:
       - checkout
       - setup_remote_docker
       - run: bash circle-test.sh
+
+  test-influxdb:
+    machine: true
+    parameters:
+      version:
+        type: string
+        enum: ["2.0", "2.1"]
+    steps:
+      - checkout
+      - run: sudo apt-get update && sudo apt-get install -y jq
+      - run: bash influxdb/test/test-2x-e2e.sh << parameters.version >>
+      - store_artifacts:
+          path: influxdb/test/logs
+          destination: container-logs

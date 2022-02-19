@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+declare -r SCRIPT_DIR=$(cd $(dirname $0) >/dev/null 2>&1 && pwd)
+source ${SCRIPT_DIR}/common.sh
+
+declare -r tag=$1 container_name=$2 data=$3 config=$4 logs=$5
+
+declare -ra docker_run_influxd=(docker run --rm -i influxdb:${tag})
+
+log_msg Checking various --help commands
+
+# Check that --help works.
+if ! ${docker_run_influxd[@]} --help > "${logs}/help.txt"; then
+    log_msg Error: Failed to run --help
+    exit 1
+fi
+if ! grep -q 'Start up the daemon' "${logs}/help.txt"; then
+    log_msg Error: "${logs}/help.txt" missing expected output
+    exit 1
+fi
+
+# Check that -h works.
+if ! ${docker_run_influxd[@]} -h > "${logs}/h.txt"; then
+    log_msg Error: Failed to run -h
+    exit 1
+fi
+if ! grep -q 'Start up the daemon' "${logs}/h.txt"; then
+    log_msg Error: "${logs}/h.txt" missing expected output
+    exit 1
+fi
+
+# Check that influxd --help works.
+if ! ${docker_run_influxd[@]} influxd --help > "${logs}/influxd-help.txt"; then
+    log_msg Error: Failed to run influxd --help
+    exit 1
+fi
+if ! grep -q 'Start up the daemon' "${logs}/influxd-help.txt"; then
+    log_msg Error: "${logs}/influxd-help.txt" missing expected output
+    exit 1
+fi
+
+# Check that influxd -h works.
+if ! ${docker_run_influxd[@]} influxd -h > "${logs}/influxd-h.txt"; then
+    log_msg Error: Failed to run influxd -h
+    exit 1
+fi
+if ! grep -q 'Start up the daemon' "${logs}/influxd-h.txt"; then
+    log_msg Error: "${logs}/influxd-h.txt" missing expected output
+    exit 1
+fi
+
+# Check that influxd print-config --help works.
+if ! ${docker_run_influxd[@]} influxd print-config --help > "${logs}/influxd-config-help.txt"; then
+    log_msg Error: Failed to run influxd pring-config --help
+    exit 1
+fi
+if ! grep -q 'Print config (in YAML)' "${logs}/influxd-config-help.txt"; then
+    log_msg Error: "${logs}/influxd-config-help.txt" missing expected output
+    exit 1
+fi
+
+# Check that influx --help works.
+if ! ${docker_run_influxd[@]} influx --help > "${logs}/influx-help.txt"; then
+    log_msg Error: Failed to run influx --help
+    exit 1
+fi
+if ! grep -q 'Influx Client' "${logs}/influx-help.txt"; then
+    log_msg Error: "${logs}/influx-help.txt" missing expected output
+    exit 1
+fi
