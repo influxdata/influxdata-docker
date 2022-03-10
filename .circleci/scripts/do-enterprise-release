@@ -41,6 +41,6 @@ pushd official-images
 popd
 
 .circleci/scripts/create-draft-pr \
-  "https://api.github.com/repos/docker-library/official-images/pulls" \
+  "https://api.github.com/repos/influxdata/official-images/pulls" \
   "influxdata:CI_release_${VERSION}" \
   "feat: Release Enterprise ${VERSION}"

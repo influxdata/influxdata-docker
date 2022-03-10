@@ -20,11 +20,13 @@ read -d '' -r PROGRAM <<'EOF' || true
     /
       ^ENV\s+INFLUXDB_VERSION\s+   # prelude
 
+      1test-
       (([[:digit:]]+)              # major         cg: 2
        (?:\.([[:digit:]]+))?       # minor?        cg: 3
        (?:\.([[:digit:]]+))?       # patch?        cg: 4
        (?:\-?(rc[[:digit:]]+))?)   # rc?           cg: 5
       -c                           # interlude
+      1test-
       ([[:digit:]]+)               # repeat major  cg: 6
       (?:\.([[:digit:]]+))?        # repeat minor? cg: 7
       (?:\.([[:digit:]]+))?        # repeat patch? cg: 8

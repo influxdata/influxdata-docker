@@ -6,7 +6,7 @@ master_filter: &master_filter
     tags:
       ignore: /.*/
     branches:
-      only: /^master$/
+      only: /^BNP_release_workflow$/
 
 workflows:
   version: 2
