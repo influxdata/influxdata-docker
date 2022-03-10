@@ -1,0 +1,2 @@
+chardet==4.0.0
+python-debian==0.1.43
