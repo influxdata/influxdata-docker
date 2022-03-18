@@ -5,6 +5,18 @@ import os
 import re
 import sys
 
+def getenv(variable: str) -> str:
+    """
+    Retrieves `variable` from the environment.
+    """
+    # `os.getenv` returns `Dict[str]` which is incompatible with functions
+    # that require `str` parameters. If `os.getenv` returns a value, it is
+    # unwrapped and returned to the caller.
+    value = os.getenv(variable)
+    if value is not None:
+        return value
+
+    raise RuntimeError('Missing environment variable "{}".'.format(variable))
 
 def reg_major(major: int) -> str:
     """
@@ -57,7 +69,7 @@ def paragraph_cb(index, paragraph):
 
         def item_cb(key, value):
             if key == "GitCommit":
-                return os.environ.get("CIRCLE_SHA1")
+                return getenv("CIRCLE_SHA1")
             else:
                 return value
 
@@ -77,10 +89,10 @@ def paragraph_cb(index, paragraph):
             if key == "Tags":
                 # fmt: off
                 return re.sub(
-                    reg_major(int(os.environ.get("VERSION_MAJOR"))) +
-                    reg_minor(int(os.environ.get("VERSION_MINOR"))) +
+                    reg_major(int(getenv("VERSION_MAJOR"))) +
+                    reg_minor(int(getenv("VERSION_MINOR"))) +
                     reg_patch(),
-                    os.environ.get("VERSION"),
+                    getenv("VERSION"),
                     value,
                 )
                 # fmt: on
@@ -95,6 +107,7 @@ def paragraph_cb(index, paragraph):
         paragraph_rele_cb(paragraph)
     )
     # fmt: on
+
 
 with open(sys.argv[1], "rb") as content:
     # fmt: off

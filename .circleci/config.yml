@@ -6,7 +6,8 @@ master_filter: &master_filter
     tags:
       ignore: /.*/
     branches:
-      only: /^master$/
+      only:
+        - master
 
 workflows:
   version: 2
@@ -66,11 +67,10 @@ jobs:
             python3 -m pip install -r \
               .circleci/scripts/update_manifest_file/requirements.txt
       - run:
-          name: Get Release Information
+          name: Get Enterprise Information
           command: |
-            .circleci/scripts/get-release-info
+            python3 .circleci/scripts/get_enterprise_info
       - run:
           name: Do Enterprise Release
           command: |
-            .circleci/scripts/get-enterprise-version
             .circleci/scripts/do-enterprise-release

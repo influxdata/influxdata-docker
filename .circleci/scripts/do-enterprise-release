@@ -3,10 +3,9 @@ set -o errexit  \
     -o nounset  \
     -o pipefail
 
-if [[ ${PRODUCT} != 'influxdb' ]] || ( \
-     [[ ${SUBPRODUCT} != 'meta' ]] &&  \
-     [[ ${SUBPRODUCT} != 'data' ]]     \
-   )
+if [[ ${PRODUCT:-} != 'influxdb' ]] || \
+  [[ ${VERSION_MAJOR:-} != '1' ]] || \
+  [[ ${VERSION_MINOR:-} != '9' ]]
 then
   printf 'Release is not Enterprise skipping...\n'; exit 0
 fi
