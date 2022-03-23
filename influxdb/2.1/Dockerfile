@@ -21,7 +21,7 @@ RUN set -eux; \
 	gosu --version && \
 	gosu nobody true
 
-# Install the infuxd server
+# Install the influxd server
 ENV INFLUXDB_VERSION 2.1.1
 RUN set -eux && \
     ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
