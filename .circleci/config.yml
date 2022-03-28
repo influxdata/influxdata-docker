@@ -9,6 +9,11 @@ master_filter: &master_filter
       only:
         - master
 
+ubuntu_machine: &ubuntu_machine
+  machine:
+    image: ubuntu-2004:202111-02
+    docker_layer_caching: true
+
 workflows:
   version: 2
   ci:
@@ -23,7 +28,9 @@ workflows:
       - test-influxdb-binaries:
           matrix:
             parameters:
-              product: [ "influxdb/1.9/data", "influxdb/1.9/meta" ]
+              product:
+                - "influxdb/1.9/data"
+                - "influxdb/1.9/meta"
 
 jobs:
   build:
@@ -35,8 +42,7 @@ jobs:
       - run: bash circle-test.sh
 
   test-influxdb:
-    machine:
-      image: ubuntu-2004:202111-01
+    <<: *ubuntu_machine
     parameters:
       version:
         type: string
@@ -82,7 +88,7 @@ jobs:
             .circleci/scripts/do-enterprise-release
 
   test-influxdb-binaries:
-    machine: true
+    <<: *ubuntu_machine
     parameters:
       product:
         type: string
