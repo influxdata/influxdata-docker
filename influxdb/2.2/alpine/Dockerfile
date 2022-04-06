@@ -53,7 +53,7 @@ RUN set -eux && \
     influxd version
 
 # Install the influx CLI
-ENV INFLUX_CLI_VERSION 2.2.1
+ENV INFLUX_CLI_VERSION 2.3.0
 RUN set -eux && \
     ARCH="$(apk --print-arch)" && \
     if [ ${ARCH} = x86_64 ]; then \
