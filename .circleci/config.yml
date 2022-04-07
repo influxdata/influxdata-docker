@@ -20,7 +20,8 @@ jobs:
       - run: bash circle-test.sh
 
   test-influxdb:
-    machine: true
+    machine:
+      image: ubuntu-2004:202111-01
     parameters:
       version:
         type: string
