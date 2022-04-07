@@ -21,7 +21,7 @@ jobs:
 
   test-influxdb:
     machine:
-      image: ubuntu-2004:202111-01
+      image: ubuntu-2004:202111-02
     parameters:
       version:
         type: string
