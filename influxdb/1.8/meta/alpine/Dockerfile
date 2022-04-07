@@ -20,6 +20,7 @@ RUN set -ex && \
     rm -f /usr/src/influxdb-*/influxdb-meta.conf && \
     chmod +x /usr/src/influxdb-*/* && \
     cp -a /usr/src/influxdb-*/* /usr/bin/ && \
+    gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
     apk del .build-deps
 COPY influxdb-meta.conf /etc/influxdb/influxdb-meta.conf
