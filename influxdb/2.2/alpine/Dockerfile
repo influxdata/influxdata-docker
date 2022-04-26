@@ -1,7 +1,11 @@
-FROM buildpack-deps:buster-curl
+FROM alpine:3.14
 
-RUN groupadd -r influxdb --gid=1000 && \
-    useradd -r -g influxdb --uid=1000 --home-dir=/home/influxdb --shell=/bin/bash influxdb && \
+RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
+RUN apk add --no-cache tzdata bash ca-certificates gnupg run-parts && \
+    update-ca-certificates
+
+RUN addgroup -S -g 1000 influxdb && \
+    adduser -S -G influxdb -u 1000 -h /home/influxdb -s /bin/sh influxdb && \
     mkdir -p /home/influxdb && \
     chown -R influxdb:influxdb /home/influxdb
 
@@ -9,32 +13,39 @@ RUN groupadd -r influxdb --gid=1000 && \
 # https://github.com/tianon/gosu/releases
 ENV GOSU_VER 1.12
 RUN set -eux; \
-	dpkgArch="$(dpkg --print-architecture)" && \
-	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-$dpkgArch" && \
-	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-$dpkgArch.asc" && \
-	export GNUPGHOME="$(mktemp -d)" && \
-	gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 && \
-	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu && \
-	gpgconf --kill all && \
-	rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc && \
-	chmod +x /usr/local/bin/gosu && \
-	gosu --version && \
+    ARCH="$(apk --print-arch)" && \
+    case "${ARCH}" in \
+        x86_64)  ARCH=amd64;; \
+        aarch64) ARCH=arm64;; \
+        *)       echo "Unsupported architecture: ${ARCH}"; exit 1;; \
+    esac && \
+	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-$ARCH"; \
+	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-$ARCH.asc"; \
+	export GNUPGHOME="$(mktemp -d)"; \
+	gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
+	gpgconf --kill all; \
+	rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc; \
+	chmod +x /usr/local/bin/gosu; \
+	gosu --version; \
 	gosu nobody true
 
-# Install the influxd server
-ENV INFLUXDB_VERSION 2.1.1
+# Install the infuxd server
+ENV INFLUXDB_VERSION 2.2.0
 RUN set -eux && \
-    ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
-    case "${dpkgArch##*-}" in \
-        amd64) ARCH='amd64';; \
-        arm64) ARCH='arm64';; \
-        *)     echo "Unsupported architecture: ${dpkgArch}"; exit 1;; \
-    esac && \
+    ARCH="$(apk --print-arch)" && \
+    if [ ${ARCH} = x86_64 ]; then \
+        ARCH=amd64; \
+    elif [ ${ARCH} = aarch64 ]; then \
+        ARCH=arm64; \
+    else \
+        echo "Unsupported architecture: ${ARCH}" && exit 1; \
+    fi && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
     export GNUPGHOME="$(mktemp -d)" && \
     echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf && \
-    gpg --batch --keyserver keys.openpgp.org --recv-keys 8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
+    gpg --keyserver keys.openpgp.org --recv-keys 8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
     gpg --batch --verify influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
     tar xzf influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
     cp influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}/influxd /usr/local/bin/influxd && \
@@ -42,19 +53,21 @@ RUN set -eux && \
     influxd version
 
 # Install the influx CLI
-ENV INFLUX_CLI_VERSION 2.2.1
+ENV INFLUX_CLI_VERSION 2.3.0
 RUN set -eux && \
-    ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
-    case "${dpkgArch##*-}" in \
-        amd64) ARCH='amd64';; \
-        arm64) ARCH='arm64';; \
-        *)     echo "Unsupported architecture: ${dpkgArch}"; exit 1;; \
-    esac && \
+    ARCH="$(apk --print-arch)" && \
+    if [ ${ARCH} = x86_64 ]; then \
+        ARCH=amd64; \
+    elif [ ${ARCH} = aarch64 ]; then \
+        ARCH=arm64; \
+    else \
+        echo "Unsupported architecture: ${ARCH}" && exit 1; \
+    fi && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz && \
     export GNUPGHOME="$(mktemp -d)" && \
     echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf && \
-    gpg --batch --keyserver keys.openpgp.org --recv-keys 8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
+    gpg --keyserver keys.openpgp.org --recv-keys 8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
     gpg --batch --verify influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz.asc influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz && \
     tar xzf influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz && \
     cp influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}/influx /usr/local/bin/influx && \

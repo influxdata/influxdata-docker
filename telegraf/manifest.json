@@ -6,9 +6,9 @@
     "Mya Longmire <mlongmire@influxdata.com> (@MyaLongmire)"
   ],
   "versions": [
-    "1.19",
     "1.20",
-    "1.21"
+    "1.21",
+    "1.22"
   ],
   "architectures": [
     "amd64",

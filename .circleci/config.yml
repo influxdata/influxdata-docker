@@ -8,7 +8,7 @@ workflows:
       - test-influxdb:
           matrix:
             parameters:
-              version: ["2.0", "2.1"]
+              version: ["2.0", "2.1", "2.2"]
 
 jobs:
   build:
@@ -20,11 +20,12 @@ jobs:
       - run: bash circle-test.sh
 
   test-influxdb:
-    machine: true
+    machine:
+      image: ubuntu-2004:202111-01
     parameters:
       version:
         type: string
-        enum: ["2.0", "2.1"]
+        enum: ["2.0", "2.1", "2.2"]
     steps:
       - checkout
       - run: sudo apt-get update && sudo apt-get install -y jq
