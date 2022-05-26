@@ -1,4 +1,13 @@
+---
 version: 2.1
+
+master_filter: &master_filter
+  filters:
+    tags:
+      ignore: /.*/
+    branches:
+      only:
+        - master
 
 workflows:
   version: 2
@@ -9,6 +18,8 @@ workflows:
           matrix:
             parameters:
               version: ["2.0", "2.1", "2.2"]
+      - publish_docker_images:
+          <<: *master_filter
 
 jobs:
   build:
@@ -33,3 +44,33 @@ jobs:
       - store_artifacts:
           path: influxdb/test/logs
           destination: container-logs
+
+  publish_docker_images:
+    docker:
+      - image: 'cimg/python:3.6'
+    steps:
+      - checkout
+      - run:
+          name: Install Prerequisite Packages
+          command: |
+            sudo bash -s \<<EOF
+              #!/bin/bash
+              set -o errexit  \
+                  -o nounset  \
+                  -o pipefail
+
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update
+              apt-get install --yes git
+            EOF
+
+            python3 -m pip install -r \
+              .circleci/scripts/update_manifest_file/requirements.txt
+      - run:
+          name: Get Enterprise Information
+          command: |
+            python3 .circleci/scripts/get_enterprise_info
+      - run:
+          name: Do Enterprise Release
+          command: |
+            .circleci/scripts/do-enterprise-release

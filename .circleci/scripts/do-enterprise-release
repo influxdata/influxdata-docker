@@ -1,0 +1,40 @@
+#!/bin/bash
+set -o errexit  \
+    -o nounset  \
+    -o pipefail
+
+if [[ ${PRODUCT:-} != 'influxdb' ]] || \
+  [[ ${VERSION_MAJOR:-} != '1' ]] || \
+  [[ ${VERSION_MINOR:-} != '9' ]]
+then
+  printf 'Release is not Enterprise skipping...\n'; exit 0
+fi
+
+git clone git@github.com:/docker-library/official-images
+
+python3 .circleci/scripts/update_manifest_file official-images/library/influxdb
+
+pushd official-images
+
+  # CircleCI preloads the ssh-agent with the secret key required to clone
+  # the repository. Unfortunately, this secret key does not have the
+  # required permissions to `push`. This flushes the ssh-agent of
+  # keys so that the `${SSH_MACHINE_SECKEY}` is always used.
+  ssh-add -D && base64 -d <<<"${SSH_MACHINE_SECKEY}" | ssh-add -
+
+  git config user.name  "${GITHUB_MACHINE_NAME}"
+  git config user.email "${GITHUB_MACHINE_EMAIL}"
+
+  # We always branch from 'origin/master' to use the most up-to-date
+  # source and avoid merge conflicts.
+  git checkout -b "CI_release_${VERSION}" "origin/master"
+
+  git add . && git commit -m "feat: release Enterprise ${VERSION}"
+
+  # If this workflow is executed multiple times, it's possible that a branch
+  # named `CI_release_${VERSION}` already exists. If this is the
+  # case, we overwrite it with our commits.
+  git remote add influxdata git@github.com:/influxdata/official-images
+  git push -f --set-upstream influxdata "CI_release_${VERSION}"
+
+popd
