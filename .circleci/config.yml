@@ -17,7 +17,7 @@ workflows:
       - test-influxdb:
           matrix:
             parameters:
-              version: ["2.0", "2.1", "2.2"]
+              version: ["2.0", "2.1", "2.2", "2.3"]
       - publish_docker_images:
           <<: *master_filter
 
@@ -36,7 +36,7 @@ jobs:
     parameters:
       version:
         type: string
-        enum: ["2.0", "2.1", "2.2"]
+        enum: ["2.0", "2.1", "2.2", "2.3"]
     steps:
       - checkout
       - run: sudo apt-get update && sudo apt-get install -y jq
