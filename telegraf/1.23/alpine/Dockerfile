@@ -1,7 +1,7 @@
 FROM alpine:3.15
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata su-exec libcap && \
+RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata su-exec libcap dpkg && \
     update-ca-certificates
 
 ENV TELEGRAF_VERSION 1.23.0
@@ -15,11 +15,20 @@ RUN set -ex && \
     do \
         gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
     done && \
-    wget --no-verbose https://dl.influxdata.com/telegraf/releases/telegraf-${TELEGRAF_VERSION}_static_linux_amd64.tar.gz.asc && \
-    wget --no-verbose https://dl.influxdata.com/telegraf/releases/telegraf-${TELEGRAF_VERSION}_static_linux_amd64.tar.gz && \
-    gpg --batch --verify telegraf-${TELEGRAF_VERSION}_static_linux_amd64.tar.gz.asc telegraf-${TELEGRAF_VERSION}_static_linux_amd64.tar.gz && \
+    ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
+    case "${dpkgArch##*-}" in \
+      amd64) ARCH='amd64';; \
+      arm64) ARCH='arm64';; \
+      armhf) ARCH='armhf';; \
+      armel) ARCH='armel';; \
+      *)     echo "Unsupported architecture: ${dpkgArch}"; exit 1;; \
+    esac && \
+    if [ "$ARCH" == "amd64" ]; then STATIC="_static"; fi && \
+    wget --no-verbose https://dl.influxdata.com/telegraf/releases/telegraf-${TELEGRAF_VERSION}${STATIC}_linux_${ARCH}.tar.gz.asc && \
+    wget --no-verbose https://dl.influxdata.com/telegraf/releases/telegraf-${TELEGRAF_VERSION}${STATIC}_linux_${ARCH}.tar.gz && \
+    gpg --batch --verify telegraf-${TELEGRAF_VERSION}${STATIC}_linux_${ARCH}.tar.gz.asc telegraf-${TELEGRAF_VERSION}${STATIC}_linux_${ARCH}.tar.gz && \
     mkdir -p /usr/src /etc/telegraf && \
-    tar -C /usr/src -xzf telegraf-${TELEGRAF_VERSION}_static_linux_amd64.tar.gz && \
+    tar -C /usr/src -xzf telegraf-${TELEGRAF_VERSION}${STATIC}_linux_${ARCH}.tar.gz && \
     mv /usr/src/telegraf*/etc/telegraf/telegraf.conf /etc/telegraf/ && \
     mkdir /etc/telegraf/telegraf.d && \
     cp -a /usr/src/telegraf*/usr/bin/telegraf /usr/bin/ && \
