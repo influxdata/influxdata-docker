@@ -4,7 +4,7 @@ RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache tzdata bash ca-certificates && \
     update-ca-certificates
 
-ENV INFLUXDB_VERSION 1.9.7-c1.9.7
+ENV INFLUXDB_VERSION 1.9.8-c1.9.8
 RUN set -ex && \
     apk add --no-cache --virtual .build-deps wget gnupg tar && \
     for key in \
