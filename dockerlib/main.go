@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const remoteRepo = "git://github.com/influxdata/influxdata-docker"
+const remoteRepo = "https://github.com/influxdata/influxdata-docker.git"
 
 func latestRev(path string) (string, error) {
 	var buf bytes.Buffer

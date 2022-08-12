@@ -1,11 +1,38 @@
+---
 version: 2.1
+
+master_filter: &master_filter
+  filters:
+    tags:
+      ignore: /.*/
+    branches:
+      only:
+        - master
+
+ubuntu_machine: &ubuntu_machine
+  machine:
+    image: ubuntu-2004:202111-02
+    docker_layer_caching: true
 
 workflows:
   version: 2
   ci:
     jobs:
       - build
-      - test-influxdb
+      - test-influxdb:
+          matrix:
+            parameters:
+              version: ["2.0", "2.1", "2.2", "2.3"]
+      - publish_docker_images:
+          <<: *master_filter
+      - test-influxdb-binaries:
+          matrix:
+            parameters:
+              product:
+                - "influxdb/1.9/data"
+                - "influxdb/1.9/meta"
+                - "influxdb/1.10/data"
+                - "influxdb/1.10/meta"
 
 jobs:
   build:
@@ -17,11 +44,58 @@ jobs:
       - run: bash circle-test.sh
 
   test-influxdb:
-    machine: true
+    <<: *ubuntu_machine
+    parameters:
+      version:
+        type: string
+        enum: ["2.0", "2.1", "2.2", "2.3"]
     steps:
       - checkout
-      - run: sudo apt-get update && sudo apt-get install -y jq
-      - run: bash influxdb/test/test-2x-e2e.sh
+      - run: |
+          sudo apt-get update &&
+          sudo apt-get install -y jq
+      - run: bash influxdb/test/test-2x-e2e.sh << parameters.version >>
       - store_artifacts:
           path: influxdb/test/logs
           destination: container-logs
+
+  publish_docker_images:
+    docker:
+      - image: 'cimg/python:3.6'
+    steps:
+      - checkout
+      - run:
+          name: Install Prerequisite Packages
+          command: |
+            sudo bash -s \<<EOF
+              #!/bin/bash
+              set -o errexit  \
+                  -o nounset  \
+                  -o pipefail
+
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update
+              apt-get install --yes git
+            EOF
+
+            python3 -m pip install -r \
+              .circleci/scripts/update_manifest_file/requirements.txt
+      - run:
+          name: Get Enterprise Information
+          command: |
+            python3 .circleci/scripts/get_enterprise_info
+      - run:
+          name: Do Enterprise Release
+          command: |
+            .circleci/scripts/do-enterprise-release
+
+  test-influxdb-binaries:
+    <<: *ubuntu_machine
+    parameters:
+      product:
+        type: string
+    steps:
+      - checkout
+      - run:
+          name: Validate Docker Image Binaries
+          command: influxdb/test/test-binaries << parameters.product >>

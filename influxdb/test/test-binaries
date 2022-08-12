@@ -1,0 +1,68 @@
+#!/bin/bash
+set -o errexit  \
+    -o nounset  \
+    -o pipefail
+
+function build_local_image()
+{
+  # ${1} -> directory
+  # ${2} -> tag
+  pushd "${1}"
+
+  docker build -t "${2}" .
+
+  popd
+}
+
+# ${1} -> product
+build_local_image "${1}" "influxdb-test"
+
+read -d '' -r PROGRAM <<'EOF' || true
+set -o errexit  \
+    -o nounset  \
+    -o pipefail \
+    -o xtrace
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get install --yes binutils
+
+function test_race()
+{
+  # ${1} -> target
+  if grep --quiet 'WARNING\: DATA RACE' <<<"$(strings "${1}")"
+  then
+    printf 'Race-enabled binary detected: %s\n' "${1}" >&2 ; exit 1
+  fi
+}
+
+function test_static()
+{
+  # ${1} -> target
+
+  # `ldd` has the disadavantage that it cannot differentiate between a binary
+  # without a dynamic section and garbage. `file` requires somewhat brittle
+  # string parsing. `readelf` + `grep` circumvents both of these problems.
+  if ! readelf --dynamic "${1}" | \
+    grep --silent 'There is no dynamic section in this file.'
+  then
+    printf 'Non-static binary detected: %s\n' "${1}" >&2 ; exit 1
+  fi
+}
+
+for target in             \
+  /usr/bin/influx         \
+  /usr/bin/influx_inspect \
+  /usr/bin/influxd        \
+  /usr/bin/influxd-ctl    \
+  /usr/bin/influxd-meta
+do
+  if [[ -x "${target}" ]]
+  then
+    test_race "${target}"
+    test_static "${target}"
+  fi
+done
+EOF
+
+docker run -it "influxdb-test" bash -c "${PROGRAM}"

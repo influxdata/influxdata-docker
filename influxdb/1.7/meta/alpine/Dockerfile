@@ -1,4 +1,4 @@
-FROM alpine:3.12
+FROM alpine:3.14
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache tzdata bash ca-certificates && \
@@ -12,9 +12,7 @@ RUN set -ex && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
     do \
-        gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" || \
-        gpg --keyserver pgp.mit.edu --recv-keys "$key" || \
-        gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
+        gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
     done && \
     wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
@@ -24,6 +22,7 @@ RUN set -ex && \
     rm -f /usr/src/influxdb-*/influxdb-meta.conf && \
     chmod +x /usr/src/influxdb-*/* && \
     cp -a /usr/src/influxdb-*/* /usr/bin/ && \
+    gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
     apk del .build-deps
 COPY influxdb-meta.conf /etc/influxdb/influxdb-meta.conf

@@ -1,4 +1,4 @@
-FROM alpine:3.13
+FROM alpine:3.14
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache tzdata bash ca-certificates gnupg run-parts su-exec && \
@@ -9,7 +9,7 @@ RUN addgroup -S -g 1000 influxdb && \
     mkdir -p /home/influxdb && \
     chown -R influxdb:influxdb /home/influxdb
 
-ENV INFLUXDB_VERSION 2.0.7
+ENV INFLUXDB_VERSION 2.0.9
 RUN set -eux && \
     ARCH="$(apk --print-arch)" && \
     if [ ${ARCH} = x86_64 ]; then \
@@ -50,3 +50,4 @@ EXPOSE 8086
 ENV INFLUX_CONFIGS_PATH /etc/influxdb2/influx-configs
 ENV INFLUXD_INIT_PORT 9999
 ENV INFLUXD_INIT_PING_ATTEMPTS 600
+ENV DOCKER_INFLUXDB_INIT_CLI_CONFIG_NAME default
