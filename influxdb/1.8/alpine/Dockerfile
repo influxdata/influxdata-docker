@@ -19,9 +19,15 @@ RUN set -ex && \
     gpg --batch --verify influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
     mkdir -p /usr/src && \
     tar -C /usr/src -xzf influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
-    rm -f /usr/src/influxdb-*/influxdb.conf && \
-    chmod +x /usr/src/influxdb-*/* && \
-    cp -a /usr/src/influxdb-*/* /usr/bin/ && \
+    chmod +x /usr/src/influxdb-*/influx \
+             /usr/src/influxdb-*/influx_inspect \
+             /usr/src/influxdb-*/influx_stress \
+             /usr/src/influxdb-*/influxd &&\
+    mv /usr/src/influxdb-*/influx \
+       /usr/src/influxdb-*/influx_inspect \
+       /usr/src/influxdb-*/influx_stress  \
+       /usr/src/influxdb-*/influxd \
+       /usr/bin/ &&\
     gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
     apk del .build-deps
