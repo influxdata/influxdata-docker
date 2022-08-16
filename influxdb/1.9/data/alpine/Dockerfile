@@ -19,7 +19,7 @@ RUN set -ex && \
     tar -C /usr/src -xzf influxdb-data-${INFLUXDB_VERSION}_linux_amd64.tar.gz && \
     rm -f /usr/src/influxdb-*/etc/influxdb/influxdb.conf && \
     chmod +x /usr/src/influxdb-*/usr/bin/* && \
-    cp -a /usr/src/influxdb-*/usr/bin/* /usr/bin/ && \
+    cp -a /usr/src/influxdb-*/usr/bin/. /usr/bin/ && \
     gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
     apk del .build-deps
