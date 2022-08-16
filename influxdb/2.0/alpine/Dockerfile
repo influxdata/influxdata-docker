@@ -25,6 +25,7 @@ RUN set -eux && \
     echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf && \
     gpg --keyserver keys.openpgp.org --recv-keys 8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
     gpg --batch --verify influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
+    gpgconf --kill all && \
     tar xzf influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
     cp influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}/influx* /usr/local/bin/ && \
     rm -rf "$GNUPGHOME" influxdb2.key influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}* && \
