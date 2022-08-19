@@ -15,7 +15,7 @@ RUN mkdir -p /root/.gnupg && chmod 700 /root/.gnupg                             
     gpg --batch --keyserver keys.openpgp.org --recv-keys 8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A
 
 # Install the infuxd server
-ENV INFLUXDB_VERSION 2.2.0
+ENV INFLUXDB_VERSION 2.4.0
 RUN set -eux && \
     ARCH="$(apk --print-arch)" && \
     if [ ${ARCH} = x86_64 ]; then \
@@ -29,11 +29,11 @@ RUN set -eux && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
     gpg --batch --verify influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
     tar xzf influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
-    cp influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}/influxd /usr/local/bin/influxd && \
+    cp influxdb2_linux_${ARCH}/influxd /usr/local/bin/influxd && \
     influxd version
 
 # Install the influx CLI
-ENV INFLUX_CLI_VERSION 2.3.0
+ENV INFLUX_CLI_VERSION 2.4.0
 RUN set -eux && \
     ARCH="$(apk --print-arch)" && \
     if [ ${ARCH} = x86_64 ]; then \
