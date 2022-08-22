@@ -18,7 +18,21 @@ workflows:
   version: 2
   ci:
     jobs:
-      - build
+      - build:
+          name: build-chronograf
+          product: chronograf
+      - build:
+          name: build-dockerlib
+          product: dockerlib
+      - build:
+          name: build-influxdb
+          product: influxdb
+      - build:
+          name: build-kapacitor
+          product: kapacitor
+      - build:
+          name: build-telegraf
+          product: telegraf
       - test-influxdb:
           matrix:
             parameters:
@@ -36,12 +50,16 @@ workflows:
 
 jobs:
   build:
+    parameters:
+      product:
+        type: string
     docker:
       - image: cimg/go:1.15.6
     steps:
       - checkout
       - setup_remote_docker
-      - run: bash circle-test.sh
+      - run: |
+          ./circle-test.sh "<< parameters.product >>"
 
   test-influxdb:
     <<: *ubuntu_machine

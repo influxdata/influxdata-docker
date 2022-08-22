@@ -9,11 +9,6 @@ RUN addgroup -S -g 1000 influxdb && \
     mkdir -p /home/influxdb && \
     chown -R influxdb:influxdb /home/influxdb
 
-# Configure GNUPG
-RUN mkdir -p /root/.gnupg && chmod 700 /root/.gnupg                                               && \
-    echo "disable-ipv6" >> /root/.gnupg/dirmngr.conf                                              && \
-    gpg --batch --keyserver keys.openpgp.org --recv-keys 8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A
-
 ENV INFLUXDB_VERSION 2.0.9
 RUN set -eux && \
     ARCH="$(apk --print-arch)" && \
@@ -26,19 +21,16 @@ RUN set -eux && \
     fi && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
+    export GNUPGHOME="$(mktemp -d)" && \
+    echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf && \
+    gpg --keyserver keys.openpgp.org --recv-keys 8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
     gpg --batch --verify influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
+    gpgconf --kill all && \
     tar xzf influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
     cp influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}/influx* /usr/local/bin/ && \
+    rm -rf "$GNUPGHOME" influxdb2.key influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}* && \
     influxd version && \
     influx version
-
-# Remove GNUPG Configuration
-RUN gpgconf --kill all                                      && \
-    rm -rf                                                     \
-      "/root/.gnupg"                                           \
-      influxdb2.key                                            \
-      influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}*             \
-      influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}*
 
 # Create standard directories expected by the entry-point.
 RUN mkdir /docker-entrypoint-initdb.d && \
