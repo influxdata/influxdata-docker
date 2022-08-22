@@ -37,6 +37,7 @@ RUN set -eux && \
     gpg --batch --verify influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
     tar xzf influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
     cp influxdb2_linux_${ARCH}/influxd /usr/local/bin/influxd && \
+    rm -rf influxdb2* && \
     influxd version
 
 # Install the influx CLI
@@ -53,15 +54,14 @@ RUN set -eux && \
     gpg --batch --verify influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz.asc influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz && \
     tar xzf influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz && \
     cp influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}/influx /usr/local/bin/influx && \
+    rm -rf influxdb2* && \
     influx version
 
 # Remove GNUPG Configuration
 RUN gpgconf --kill all                                      && \
     rm -rf                                                     \
       "/root/.gnupg"                                           \
-      influxdb2.key                                            \
-      influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}*             \
-      influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}*
+      influxdb2.key
 
 # Create standard directories expected by the entry-point.
 RUN mkdir /docker-entrypoint-initdb.d && \
