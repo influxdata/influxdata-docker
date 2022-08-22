@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 dir=.
 if [ $# -gt 0 ]; then
@@ -20,7 +20,7 @@ docker_build() {
     docker build --no-cache --rm=false "$@"
   else
     # Local building should use the cache for speedy development.
-    docker build --rm=true "$@"
+    docker build --no-cache --rm=true "$@"
   fi
 }
 
