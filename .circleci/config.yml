@@ -11,7 +11,7 @@ master_filter: &master_filter
 
 ubuntu_machine: &ubuntu_machine
   machine:
-    image: ubuntu-2004:202111-02
+    image: ubuntu-2204:current
     docker_layer_caching: true
 
 workflows:
@@ -57,7 +57,8 @@ jobs:
       - image: cimg/go:1.15.6
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 20.10.14
       - run: |
           ./circle-test.sh "<< parameters.product >>"
 
