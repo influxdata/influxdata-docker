@@ -1,17 +1,20 @@
 FROM alpine:3.14
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache tzdata bash ca-certificates && \
+RUN apk add --no-cache tzdata bash ca-certificates alpine gnupg && \
     update-ca-certificates
+
+RUN for attempt in 1 2 3 ; \
+    do \
+      sleep 1 && \
+      gpg --yes --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys \
+        05CE15085FC09D18E99EFB22684A14CF2582E0C5 && \
+      break ; \
+    done
 
 ENV INFLUXDB_VERSION 1.8.10-c1.8.10
 RUN set -ex && \
-    apk add --no-cache --virtual .build-deps wget gnupg tar && \
-    for key in \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
-    do \
-        gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
-    done && \
+    apk add --no-cache --virtual .build-deps wget tar && \
     wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
     gpg --batch --verify influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc influxdb-meta-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
@@ -20,8 +23,7 @@ RUN set -ex && \
     rm -f /usr/src/influxdb-*/influxdb-meta.conf && \
     chmod +x /usr/src/influxdb-*/* && \
     cp -a /usr/src/influxdb-*/* /usr/bin/ && \
-    gpgconf --kill all && \
-    rm -rf *.tar.gz* /usr/src /root/.gnupg && \
+    rm -rf *.tar.gz* /usr/src && \
     apk del .build-deps
 COPY influxdb-meta.conf /etc/influxdb/influxdb-meta.conf
 
