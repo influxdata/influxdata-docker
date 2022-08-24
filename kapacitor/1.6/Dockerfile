@@ -5,6 +5,14 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     awk 'f{if(sub(/^#/,"",$0)==0){f=0}};/^# enable bash completion/{f=1};{print;}' /etc/bash.bashrc > /etc/bash.bashrc.new && \
     mv /etc/bash.bashrc.new /etc/bash.bashrc
 
+RUN for attempt in 1 2 3 ; \
+    do \
+      sleep 1 && \
+      gpg --yes --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys \
+        05CE15085FC09D18E99EFB22684A14CF2582E0C5 && \
+      break ; \
+    done
+
 ENV KAPACITOR_VERSION 1.6.5
 
 RUN set -eux && \
@@ -16,13 +24,8 @@ RUN set -eux && \
     esac && \
     wget --no-verbose https://dl.influxdata.com/kapacitor/releases/kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb.asc && \
     wget --no-verbose https://dl.influxdata.com/kapacitor/releases/kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb && \
-    export GNUPGHOME="$(mktemp -d)" && \
-    echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf && \
-    gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys 05CE15085FC09D18E99EFB22684A14CF2582E0C5 && \
     gpg --batch --verify kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb.asc kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb && \
-    rm -rf "$GNUPGHOME" && \
     dpkg -i kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb && \
-    gpgconf --kill all && \
     rm -f kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb*
 
 COPY kapacitor.conf /etc/kapacitor/kapacitor.conf

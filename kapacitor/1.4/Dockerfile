@@ -5,13 +5,12 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     awk 'f{if(sub(/^#/,"",$0)==0){f=0}};/^# enable bash completion/{f=1};{print;}' /etc/bash.bashrc > /etc/bash.bashrc.new && \
     mv /etc/bash.bashrc.new /etc/bash.bashrc
 
-RUN set -ex && \
-    mkdir ~/.gnupg; \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
-    for key in \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
+RUN for attempt in 1 2 3 ; \
     do \
-        gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
+      sleep 1 && \
+      gpg --yes --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys \
+        05CE15085FC09D18E99EFB22684A14CF2582E0C5 && \
+      break ; \
     done
 
 ENV KAPACITOR_VERSION 1.4.1
