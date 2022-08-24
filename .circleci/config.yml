@@ -11,7 +11,7 @@ master_filter: &master_filter
 
 ubuntu_machine: &ubuntu_machine
   machine:
-    image: ubuntu-2004:202111-02
+    image: ubuntu-2204:current
     docker_layer_caching: true
 
 workflows:
