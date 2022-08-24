@@ -9,6 +9,14 @@ RUN addgroup -S -g 1000 influxdb && \
     mkdir -p /home/influxdb && \
     chown -R influxdb:influxdb /home/influxdb
 
+RUN for attempt in 1 2 3 ; \
+    do \
+      sleep 1 && \
+      gpg --yes --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys \
+          8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
+      break ; \
+    done
+
 # Install the infuxd server
 ENV INFLUXDB_VERSION 2.3.0
 RUN set -eux && \
@@ -22,14 +30,10 @@ RUN set -eux && \
     fi && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
-    export GNUPGHOME="$(mktemp -d)" && \
-    echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf && \
-    gpg --keyserver keys.openpgp.org --recv-keys 8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
     gpg --batch --verify influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
     tar xzf influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
     cp influxdb2_linux_${ARCH}/influxd /usr/local/bin/influxd && \
-    gpgconf --kill all && \
-    rm -rf "$GNUPGHOME" influxdb2.key influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}* && \
+    rm -rf influxdb2-${INFLUXDB_VERSION}-linux-${ARCH}* && \
     influxd version
 
 # Install the influx CLI
@@ -45,14 +49,10 @@ RUN set -eux && \
     fi && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz && \
-    export GNUPGHOME="$(mktemp -d)" && \
-    echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf && \
-    gpg --keyserver keys.openpgp.org --recv-keys 8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
     gpg --batch --verify influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz.asc influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz && \
     tar xzf influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}.tar.gz && \
     cp influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}/influx /usr/local/bin/influx && \
-    gpgconf --kill all && \
-    rm -rf "$GNUPGHOME" influxdb2.key influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}* && \
+    rm -rf influxdb2-client-${INFLUX_CLI_VERSION}-linux-${ARCH}* && \
     influx version
 
 # Create standard directories expected by the entry-point.

@@ -1,12 +1,11 @@
 FROM buildpack-deps:bullseye-curl
 
-RUN set -ex && \
-    mkdir ~/.gnupg; \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
-    for key in \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
+RUN for attempt in 1 2 3 ; \
     do \
-        gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
+      sleep 1 && \
+      gpg --yes --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys \
+        05CE15085FC09D18E99EFB22684A14CF2582E0C5 && \
+      break ; \
     done
 
 ENV INFLUXDB_VERSION 1.10.0-c1.10.0
