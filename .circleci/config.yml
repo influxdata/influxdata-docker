@@ -57,7 +57,8 @@ jobs:
       - image: cimg/go:1.15.6
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 20.10.14
       - run: |
           ./circle-test.sh "<< parameters.product >>"
 
