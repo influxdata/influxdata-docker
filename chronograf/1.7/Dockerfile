@@ -1,14 +1,19 @@
 FROM debian:stretch-slim
 
-RUN set -ex && \
-    mkdir ~/.gnupg; \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
-    apt-get update && apt-get install -y gpg dirmngr --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/* && \
-    for key in \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
+      ca-certificates \
+      curl \
+      dirmngr \
+      gnupg && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN for attempt in 1 2 3 ; \
     do \
-        gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
+      sleep 1 && \
+      gpg --yes --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys \
+        05CE15085FC09D18E99EFB22684A14CF2582E0C5 && \
+      break ; \
     done
 
 ENV CHRONOGRAF_VERSION 1.7.17
@@ -27,8 +32,7 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     curl -SLO "https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_${ARCH}.deb" && \
     gpg --batch --verify chronograf_${CHRONOGRAF_VERSION}_${ARCH}.deb.asc chronograf_${CHRONOGRAF_VERSION}_${ARCH}.deb && \
     dpkg -i chronograf_${CHRONOGRAF_VERSION}_${ARCH}.deb && \
-    rm -f chronograf_${CHRONOGRAF_VERSION}_${ARCH}.deb* && \
-    apt-get purge -y --auto-remove $buildDeps
+    rm -f chronograf_${CHRONOGRAF_VERSION}_${ARCH}.deb*
 
 COPY LICENSE /usr/share/chronograf/LICENSE
 COPY agpl-3.0.md /usr/share/chronograf/agpl-3.0.md
