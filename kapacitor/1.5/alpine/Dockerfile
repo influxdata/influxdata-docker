@@ -1,20 +1,21 @@
 FROM alpine:3.14
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache ca-certificates && \
+RUN apk add --no-cache ca-certificates gnupg && \
     update-ca-certificates
+
+RUN for attempt in 1 2 3 ; \
+    do \
+      sleep 1 && \
+      gpg --yes --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys \
+        05CE15085FC09D18E99EFB22684A14CF2582E0C5 && \
+      break ; \
+    done
 
 ENV KAPACITOR_VERSION 1.5.9
 
 RUN set -ex && \
-    mkdir ~/.gnupg; \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
-    apk add --no-cache --virtual .build-deps wget gnupg tar && \
-    for key in \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
-    do \
-        gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
-    done && \
+    apk add --no-cache --virtual .build-deps wget tar && \
     wget --no-verbose https://dl.influxdata.com/kapacitor/releases/kapacitor-${KAPACITOR_VERSION}-static_linux_amd64.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/kapacitor/releases/kapacitor-${KAPACITOR_VERSION}-static_linux_amd64.tar.gz && \
     gpg --batch --verify kapacitor-${KAPACITOR_VERSION}-static_linux_amd64.tar.gz.asc kapacitor-${KAPACITOR_VERSION}-static_linux_amd64.tar.gz && \
@@ -23,8 +24,7 @@ RUN set -ex && \
     rm -f /usr/src/kapacitor-*/kapacitor.conf && \
     chmod +x /usr/src/kapacitor-*/* && \
     cp -a /usr/src/kapacitor-*/* /usr/bin/ && \
-    gpgconf --kill all && \
-    rm -rf *.tar.gz* /usr/src /root/.gnupg && \
+    rm -rf *.tar.gz* /usr/src && \
     apk del .build-deps
 COPY kapacitor.conf /etc/kapacitor/kapacitor.conf
 
