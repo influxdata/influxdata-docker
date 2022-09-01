@@ -3,7 +3,7 @@ FROM debian:bullseye-slim
 RUN set -ex && \
     mkdir ~/.gnupg; \
     echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
-    apt-get update && apt-get install -y gpg dirmngr --no-install-recommends && \
+    apt-get update && apt-get install -y gnupg dirmngr --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
