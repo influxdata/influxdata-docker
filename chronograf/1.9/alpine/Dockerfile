@@ -4,13 +4,9 @@ RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache ca-certificates gnupg && \
     update-ca-certificates
 
-RUN for attempt in 1 2 3 ; \
-    do \
-      sleep 1 && \
-      gpg --yes --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 && \
-      break ; \
-    done
+RUN gpg --yes --batch \
+      --keyserver hkps://keyserver.ubuntu.com:443 \
+      --recv-keys 05CE15085FC09D18E99EFB22684A14CF2582E0C5
 
 ENV CHRONOGRAF_VERSION 1.9.4
 

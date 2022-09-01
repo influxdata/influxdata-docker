@@ -5,14 +5,10 @@ RUN groupadd -r influxdb --gid=1000 && \
     mkdir -p /home/influxdb && \
     chown -R influxdb:influxdb /home/influxdb
 
-RUN for attempt in 1 2 3 ; \
-    do \
-      sleep 1 && \
-      gpg --yes --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys \
-          B42F6819007F00F88E364FD4036A9C25BF357DD4 \
-          8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
-      break ; \
-    done
+RUN gpg --yes --batch \
+      --keyserver hkps://keyserver.ubuntu.com:443 \
+      --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+                  8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A
 
 # Install gosu for easy step-down from root.
 # https://github.com/tianon/gosu/releases

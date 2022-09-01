@@ -9,13 +9,9 @@ RUN addgroup -S -g 1000 influxdb && \
     mkdir -p /home/influxdb && \
     chown -R influxdb:influxdb /home/influxdb
 
-RUN for attempt in 1 2 3 ; \
-    do \
-      sleep 1 && \
-      gpg --yes --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys \
-          8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A && \
-      break ; \
-    done
+RUN gpg --yes --batch \
+      --keyserver hkps://keyserver.ubuntu.com:443 \
+      --recv-keys 8C2D403D3C3BDB81A4C27C883C3E4B7317FFE40A
 
 # Install the infuxd server
 ENV INFLUXDB_VERSION 2.3.0

@@ -1,20 +1,17 @@
 FROM debian:bullseye-slim
 
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y \
-      ca-certificates \
-      curl \
-      dirmngr \
-      gnupg && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update            && \
+    apt-get install           \
+      --yes                   \
+      --no-install-recommends \
+        ca-certificates       \
+        curl                  \
+        gnupg                 && \
+    rm -rf /var/lib/apt/lists
 
-RUN for attempt in 1 2 3 ; \
-    do \
-      sleep 1 && \
-      gpg --yes --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 && \
-      break ; \
-    done
+RUN gpg --yes --batch \
+      --keyserver hkps://keyserver.ubuntu.com:443 \
+      --recv-keys 05CE15085FC09D18E99EFB22684A14CF2582E0C5
 
 ENV CHRONOGRAF_VERSION 1.7.17
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \

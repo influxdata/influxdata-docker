@@ -1,12 +1,8 @@
 FROM buildpack-deps:bullseye-curl
 
-RUN for attempt in 1 2 3 ; \
-    do \
-      sleep 1 && \
-      gpg --yes --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 && \
-      break ; \
-    done
+RUN gpg --yes --batch \
+      --keyserver hkps://keyserver.ubuntu.com:443 \
+      --recv-keys 05CE15085FC09D18E99EFB22684A14CF2582E0C5
 
 ENV INFLUXDB_VERSION 1.7.11-c1.7.11
 RUN wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta_${INFLUXDB_VERSION}_amd64.deb.asc && \

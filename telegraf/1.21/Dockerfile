@@ -1,17 +1,19 @@
 FROM buildpack-deps:bullseye-curl
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends iputils-ping snmp procps lm-sensors libcap2-bin && \
-    rm -rf /var/lib/apt/lists/*
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update                        && \
+    apt-get install                       \
+      --yes --no-install-recommends       \
+        iputils-ping                      \
+        libcap2-bin                       \
+        lm-sensors                        \
+        procps                            \
+        snmp                              && \
+    rm -rf /var/lib/apt/lists
 
-RUN set -ex && \
-    mkdir ~/.gnupg; \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
-    for key in \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
-    do \
-        gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
-    done
+RUN gpg --yes --batch \
+      --keyserver hkps://keyserver.ubuntu.com:443 \
+      --recv-keys 05CE15085FC09D18E99EFB22684A14CF2582E0C5
 
 ENV TELEGRAF_VERSION 1.21.4
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
