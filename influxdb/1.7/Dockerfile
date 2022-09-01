@@ -1,4 +1,4 @@
-FROM buildpack-deps:stretch-curl
+FROM buildpack-deps:bullseye-curl
 
 RUN set -ex && \
     mkdir ~/.gnupg; \
