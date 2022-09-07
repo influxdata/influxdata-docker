@@ -1,13 +1,8 @@
 FROM buildpack-deps:bullseye-curl
 
-RUN set -ex && \
-    mkdir ~/.gnupg; \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
-    for key in \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
-    do \
-        gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
-    done
+RUN gpg --yes --batch \
+      --keyserver hkps://keyserver.ubuntu.com:443 \
+      --recv-keys 05CE15085FC09D18E99EFB22684A14CF2582E0C5
 
 ENV INFLUXDB_VERSION 1.9.8-c1.9.8
 RUN wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-data_${INFLUXDB_VERSION}_amd64.deb.asc && \
