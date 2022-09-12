@@ -1,10 +1,10 @@
-FROM alpine:3.15
+FROM alpine:3.16
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata su-exec libcap && \
     update-ca-certificates
 
-ENV TELEGRAF_VERSION 1.21.4
+ENV TELEGRAF_VERSION 1.24.0
 
 RUN set -ex && \
     mkdir ~/.gnupg; \
