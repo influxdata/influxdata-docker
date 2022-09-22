@@ -1,4 +1,4 @@
-FROM debian:stretch-slim
+FROM debian:bullseye-slim
 
 RUN set -ex && \
     mkdir ~/.gnupg; \

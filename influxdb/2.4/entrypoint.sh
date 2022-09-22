@@ -363,7 +363,6 @@ function main () {
         shift 1
     fi
 
-
     if ! check_help_flag "${@}"; then
         # Configure logging for our wrapper.
         set_global_log_level "${@}"
@@ -386,7 +385,7 @@ function main () {
     fi
 
     if [ "$(id -u)" = 0 ]; then
-        exec su-exec influxdb "$BASH_SOURCE" "${@}"
+        exec gosu influxdb "$BASH_SOURCE" "${@}"
         return
     fi
 
