@@ -10,7 +10,7 @@ RUN addgroup -S -g 1000 influxdb && \
     chown -R influxdb:influxdb /home/influxdb
 
 # Install the infuxd server
-ENV INFLUXDB_VERSION 2.4.0
+ENV INFLUXDB_VERSION 2.5.1
 RUN set -eux && \
     ARCH="$(apk --print-arch)" && \
     if [ ${ARCH} = x86_64 ]; then \
@@ -33,7 +33,7 @@ RUN set -eux && \
     influxd version
 
 # Install the influx CLI
-ENV INFLUX_CLI_VERSION 2.4.0
+ENV INFLUX_CLI_VERSION 2.5.0
 RUN set -eux && \
     ARCH="$(apk --print-arch)" && \
     if [ ${ARCH} = x86_64 ]; then \
