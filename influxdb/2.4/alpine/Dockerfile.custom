@@ -9,7 +9,7 @@ RUN addgroup -S -g 1000 influxdb && \
     mkdir -p /home/influxdb && \
     chown -R influxdb:influxdb /home/influxdb
 
-RUN wget --no-verbose https://output.circle-artifacts.com/output/job/04452da9-41af-4c2a-b610-b791ecb08bdf/artifacts/0/artifacts/influxdb2-2.x-83011aaac7-linux-amd64.tar.gz -O influxdb.tar.gz && \
+RUN wget --no-verbose https://output.circle-artifacts.com/output/job/3364246b-49ce-4975-b262-bd9dafdd6f01/artifacts/0/artifacts/influxdb2-2.x-10b8abf7da-linux-amd64.tar.gz -O influxdb.tar.gz && \
     tar -xzf influxdb.tar.gz && \
     cp influxdb2_linux_amd64/influxd /usr/local/bin/influxd && \
     rm -rf influxdb.tar.gz && \
