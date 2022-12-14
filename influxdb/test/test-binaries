@@ -17,7 +17,7 @@ function build_local_image()
 # ${1} -> product
 build_local_image "${1}" "influxdb-test"
 
-read -d '' -r PROGRAM <<'EOF' || true
+read -d '' -r PROGRAM <<'PROGRAMEOF' || true
 set -o errexit  \
     -o nounset  \
     -o pipefail \
@@ -36,17 +36,41 @@ function test_race()
   fi
 }
 
-function test_static()
+function test_static_pie()
 {
   # ${1} -> target
+  NEEDED="$(readelf -d "${1}" | (grep 'NEEDED' || true ))"
 
-  # `ldd` has the disadavantage that it cannot differentiate between a binary
-  # without a dynamic section and garbage. `file` requires somewhat brittle
-  # string parsing. `readelf` + `grep` circumvents both of these problems.
-  if ! readelf --dynamic "${1}" | \
-    grep --silent 'There is no dynamic section in this file.'
+  # shellcheck disable=SC2181
+  if [[ ${?} -ne 0 ]]
   then
-    printf 'Non-static binary detected: %s\n' "${1}" >&2 ; exit 1
+    cat <<'EOF'
+ERROR: readelf could not analyze the influxd executable! This
+       might be the consequence of installing a package built
+       for another platform OR invalid compiler/linker flags.
+EOF
+    exit 2
+  fi
+
+  if [[ "${NEEDED:-}" ]]
+  then
+    cat <<'EOF'
+ERROR: influxd not statically linked! This may prevent all
+       platforms from running influxd without installing
+       separate dependencies.
+EOF
+    exit 2
+  fi
+
+  PIE="$(readelf -d "${1}" | (grep 'Flags: PIE' || true))"
+  if [[ ! "${PIE:-}" ]]
+  then
+    # TODO(bnpfeife): Exit with error.
+    #
+    # Changes to the compiler options since the last update have made all
+    # binaries "static-pie". However, some versions of InfluxDB 1.X OSS
+    # do not have these changes.
+    printf 'ERROR: ${1} not linked with "-fPIE"!\n'
   fi
 }
 
@@ -60,9 +84,9 @@ do
   if [[ -x "${target}" ]]
   then
     test_race "${target}"
-    test_static "${target}"
+    test_static_pie "${target}"
   fi
 done
-EOF
+PROGRAMEOF
 
 docker run -it "influxdb-test" bash -c "${PROGRAM}"
