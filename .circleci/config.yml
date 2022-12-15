@@ -36,7 +36,7 @@ workflows:
       - test-influxdb:
           matrix:
             parameters:
-              version: ["2.0", "2.1", "2.2", "2.3", "2.4", "2.5"]
+              version: ["2.0", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6"]
       - publish_docker_images:
           <<: *master_filter
       - test-influxdb-binaries:
@@ -67,7 +67,7 @@ jobs:
     parameters:
       version:
         type: string
-        enum: ["2.0", "2.1", "2.2", "2.3", "2.4", "2.5"]
+        enum: ["2.0", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6"]
     steps:
       - checkout
       - run: |
