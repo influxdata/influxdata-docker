@@ -9,7 +9,7 @@ RUN set -ex && \
     mkdir ~/.gnupg; \
     echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf; \
     for key in \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
+        9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E ; \
     do \
         gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
     done

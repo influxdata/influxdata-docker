@@ -18,7 +18,7 @@ RUN set -eux && \
     wget --no-verbose https://dl.influxdata.com/kapacitor/releases/kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb && \
     export GNUPGHOME="$(mktemp -d)" && \
     echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf && \
-    gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys 05CE15085FC09D18E99EFB22684A14CF2582E0C5 && \
+    gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys 9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
     gpg --batch --verify kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb.asc kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb && \
     rm -rf "$GNUPGHOME" && \
     dpkg -i kapacitor_${KAPACITOR_VERSION}-1_${ARCH}.deb && \
