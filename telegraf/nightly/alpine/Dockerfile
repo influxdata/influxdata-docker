@@ -16,7 +16,7 @@ RUN ARCH= && \
     apk add --no-cache --virtual .build-deps wget tar && \
     wget --no-verbose https://dl.influxdata.com/telegraf/nightlies/telegraf-${TELEGRAF_VERSION}_linux_${ARCH}.tar.gz && \
     mkdir -p /usr/src /etc/telegraf && \
-    tar -C /usr/src -xzf telegraf-${TELEGRAF_VERSION}_static_linux_amd64.tar.gz && \
+    tar -C /usr/src -xzf telegraf-${TELEGRAF_VERSION}_linux_${ARCH}.tar.gz && \
     mv /usr/src/telegraf*/etc/telegraf/telegraf.conf /etc/telegraf/ && \
     mkdir /etc/telegraf/telegraf.d && \
     cp -a /usr/src/telegraf*/usr/bin/telegraf /usr/bin/ && \
