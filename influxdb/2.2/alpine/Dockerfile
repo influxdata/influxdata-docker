@@ -23,13 +23,13 @@ RUN gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
 
 # Install the infuxd server
 ENV INFLUXDB_VERSION 2.2.0
-RUN case "$(uname -m)" in \
+RUN case "$(apk --print-arch)" in \
       x86_64)  arch=amd64 ;; \
       aarch64) arch=arm64 ;; \
       *) echo 'Unsupported architecture' && exit 1 ;; \
     esac && \
-    curl -sSLO "https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz" \
-         -sSLO "https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz.asc" && \
+    curl -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz" \
+         -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz.asc" && \
     gpg --batch --verify "influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz.asc" \
                          "influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz" && \
     tar xzf "influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz" && \
@@ -41,13 +41,13 @@ RUN case "$(uname -m)" in \
 
 # Install the influx CLI
 ENV INFLUX_CLI_VERSION 2.3.0
-RUN case "$(uname -m)" in  \
+RUN case "$(apk --print-arch)" in \
       x86_64)  arch=amd64 ;; \
       aarch64) arch=arm64 ;; \
       *) echo 'Unsupported architecture' && exit 1 ;; \
     esac && \
-    curl -sSLO "https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" \
-         -sSLO "https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc" && \
+    curl -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" \
+         -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc" && \
     gpg --batch --verify "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc" \
                          "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" && \
     tar xzf "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" && \
