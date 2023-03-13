@@ -11,12 +11,6 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
-      # Tianon Gravi <tianon@tianon.xyz> (gosu)
-      B42F6819007F00F88E364FD4036A9C25BF357DD4 \
-      # InfluxData Package Signing Key <support@influxdata.com>
-      9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E
-
 # Install yq for configuration parsing
 RUN case "$(dpkg --print-architecture)" in \
       *amd64) arch=amd64 ;; \
@@ -41,6 +35,10 @@ RUN case "$(dpkg --print-architecture)" in \
       *arm64) arch=arm64 ;; \
       *) echo 'Unsupported architecture' && exit 1 ;; \
     esac && \
+    export GNUPGHOME="$(mktemp -d)" && \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
+      # Tianon Gravi <tianon@tianon.xyz> (gosu)
+      B42F6819007F00F88E364FD4036A9C25BF357DD4 && \
     curl -fLo /usr/local/bin/gosu     "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-${arch}" \
          -fLo /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-${arch}.asc" && \
     gpg --batch --verify /usr/local/bin/gosu.asc \
@@ -57,6 +55,10 @@ RUN case "$(dpkg --print-architecture)" in \
       *arm64) arch=arm64 ;; \
       *) echo 'Unsupported architecture' && exit 1 ;; \
     esac && \
+    export GNUPGHOME="$(mktemp -d)" && \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
+      # InfluxData Package Signing Key <support@influxdata.com>
+      9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
     curl -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz" \
          -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz.asc" && \
     gpg --batch --verify "influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz.asc" \
@@ -75,6 +77,10 @@ RUN case "$(dpkg --print-architecture)" in \
       *arm64) arch=arm64 ;; \
       *) echo 'Unsupported architecture' && exit 1 ;; \
     esac && \
+    export GNUPGHOME="$(mktemp -d)" && \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
+      # InfluxData Package Signing Key <support@influxdata.com>
+      9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
     curl -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" \
          -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc" && \
     gpg --batch --verify "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc" \
