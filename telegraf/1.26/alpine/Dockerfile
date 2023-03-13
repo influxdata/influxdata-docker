@@ -7,10 +7,10 @@ RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors 
 ENV TELEGRAF_VERSION 1.26.0
 
 RUN ARCH= && \
-    case "$(uname -m)" in \
+    case "$(apk --print-arch)" in \
         x86_64) ARCH='amd64';; \
         aarch64) ARCH='arm64';; \
-        *) echo "Unsupported architecture: $(uname -m)"; exit 1;; \
+        *) echo "Unsupported architecture: $(apk --print-arch)"; exit 1;; \
     esac && \
     set -ex && \
     mkdir ~/.gnupg; \
