@@ -1,4 +1,4 @@
-FROM alpine:3.16
+FROM alpine:3.17
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata su-exec libcap && \
@@ -6,11 +6,17 @@ RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors 
 
 ENV TELEGRAF_VERSION nightly
 
-RUN set -ex && \
+RUN ARCH= && \
+    case "$(uname -m)" in \
+        x86_64) ARCH='amd64';; \
+        aarch64) ARCH='arm64';; \
+        *) echo "Unsupported architecture: $(uname -m)"; exit 1;; \
+    esac && \
+    set -ex && \
     apk add --no-cache --virtual .build-deps wget tar && \
-    wget --no-verbose https://dl.influxdata.com/telegraf/nightlies/telegraf-${TELEGRAF_VERSION}_linux_amd64.tar.gz && \
+    wget --no-verbose https://dl.influxdata.com/telegraf/nightlies/telegraf-${TELEGRAF_VERSION}_linux_${ARCH}.tar.gz && \
     mkdir -p /usr/src /etc/telegraf && \
-    tar -C /usr/src -xzf telegraf-${TELEGRAF_VERSION}_linux_amd64.tar.gz && \
+    tar -C /usr/src -xzf telegraf-${TELEGRAF_VERSION}_linux_${ARCH}.tar.gz && \
     mv /usr/src/telegraf*/etc/telegraf/telegraf.conf /etc/telegraf/ && \
     mkdir /etc/telegraf/telegraf.d && \
     cp -a /usr/src/telegraf*/usr/bin/telegraf /usr/bin/ && \
