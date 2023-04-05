@@ -86,7 +86,7 @@ RUN case "$(dpkg --print-architecture)" in \
     gpg --batch --verify "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc" \
                          "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" && \
     tar xzf "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" && \
-    cp "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}/influx" /usr/local/bin/influx && \
+    cp influx /usr/local/bin/influx && \
     rm -rf "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}" \
            "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" \
            "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc" && \
