@@ -8,9 +8,22 @@ RUN apk add --no-cache \
       gnupg \
       run-parts \
       su-exec \
-      tzdata \
-      yq && \
+      tzdata && \
     update-ca-certificates
+
+# Install dasel for configuration parsing
+RUN case "$(apk --print-arch)" in \
+      x86_64)  arch=amd64 ;; \
+      aarch64) arch=arm64 ;; \
+      *) echo 'Unsupported architecture' && exit 1 ;; \
+    esac && \
+    curl -fLo /usr/local/bin/dasel "https://github.com/TomWright/dasel/releases/download/v2.1.2/dasel_linux_${arch}" && \
+    case ${arch} in \
+      amd64) echo 'e4b43d8c7d76904e2401dc81de0900d9cb69b006794ff3901ec5d50e96baa8ef  /usr/local/bin/dasel' ;; \
+      arm64) echo '92b83f30949679197403ff7a7e0f9ef3e458c1c55031d9c1bc112364e487d57d  /usr/local/bin/dasel' ;; \
+    esac | sha256sum -c - && \
+    chmod +x /usr/local/bin/dasel && \
+    dasel --version
 
 RUN addgroup -S -g 1000 influxdb && \
     adduser -S -G influxdb -u 1000 -h /home/influxdb -s /bin/sh influxdb && \
