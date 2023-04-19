@@ -1,7 +1,6 @@
 #!/bin/bash
 set -eo pipefail
 
-
 ## READ ME
 ##
 ## This script handles a few use-cases:
@@ -60,6 +59,7 @@ function log () {
 # Set the global log-level for the entry-point to match the config passed to influxd.
 function set_global_log_level () {
     local level="$(influxd::config::get log-level "${@}")"
+
     if [ -z "${level}" ] || [ -z "${LOG_LEVELS[${level}]}" ]; then
       LOG_LEVEL=info
     else
@@ -128,6 +128,10 @@ function influxd::config::get()
     )
   }
 
+  #
+  # Parse Value from Arguments
+  #
+
   local primary_key="${1}" && shift
 
   # Command line arguments take precedence over all other configuration
@@ -142,6 +146,10 @@ function influxd::config::get()
     esac
   done
 
+  #
+  # Parse Value from Environment
+  #
+
   local value
   local default
 
@@ -150,34 +158,41 @@ function influxd::config::get()
   # it is possible that variable was intentionally emptied; therefore, this
   # returns nothing when empty.
   value="$(table::get "${primary_key}" ${COLUMN_ENVIRONMENT})"
-  if [[ "${!value+x}" ]] ; then
-    echo "${!value:-}" && return
+  if [[ ${!value+x} ]] ; then
+    echo "${!value}" && return
   fi
 
-  # Finally, search the configuration files. `yq` is required as the format
-  # could be json, toml, yaml, etc. If the corresponding value could not be
-  # located within the configuration files, provide the default value. This
-  # default is what `influx server-config` would display if recently
-  # initialized with `influx setup`.
-  default="$(table::get "${primary_key}" "${COLUMN_DEFAULT}")"
+  #
+  # Parse Value from Configuration
+  #
 
-  if [[ "${INFLUXD_CONFIG_PATH}" == *toml ]]
+  case ${INFLUXD_CONFIG_PATH,,} in
+    *.toml)       local influxd_config_format=toml ;;
+    *.json)       local influxd_config_format=json ;;
+    *.yaml|*.yml) local influxd_config_format=yaml ;;
+  esac
+
+  # Unfortunately, dasel does not provide a method to test for the existence
+  # of a particular key. However, it returns with an error if it attempts to
+  # delete a nonexistent key. Since dasel will automatically update the
+  # configuration file, it is passed via `STDIN` to avoid this behavior.
+  if dasel -r "${influxd_config_format}" delete "${primary_key}" <"${INFLUXD_CONFIG_PATH}" &>/dev/null
   then
-    # There are two yq projects. Unfortunately, only the python version can
-    # process toml documents and this is the go implementation. Downloading
-    # python libraries would increase the docker image size considerably.
-    # Fortunately, processing toml as props extracts most information.
-    value="$(yq -p props eval ".\"${primary_key}\" // \"${default}\"" "${INFLUXD_CONFIG_PATH}")"
+    # Unfortunately, dasel has inconsistent string displaying behavior. For
+    # yaml and toml, it will display the value without double-quotes unless
+    # the string is empty. However, for json, it always with double-quotes.
+    # This always strips the first leading and trailing double-quotes, as
+    # they are almost always not required.
+    value="$(dasel -f "${INFLUXD_CONFIG_PATH}" -s "${primary_key}")"
 
     ( # strip leading and trailing " characters
       shopt -s extglob
-
       value="${value#'"'}"
       value="${value%'"'}"
       echo "${value}"
     )
   else
-    yq eval ".\"${primary_key}\" // \"${default}\"" "${INFLUXD_CONFIG_PATH}"
+    table::get "${primary_key}" "${COLUMN_DEFAULT}"
   fi
 }
 
@@ -208,6 +223,7 @@ function create_directories () {
 # Read password and username from file to avoid unsecure env variables
 if [ -n "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}" ] && DOCKER_INFLUXDB_INIT_PASSWORD=$(cat "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}") || echo "DOCKER_INFLUXDB_INIT_PASSWORD_FILE defined, but file not existing, skipping."; fi
 if [ -n "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}" ] && DOCKER_INFLUXDB_INIT_USERNAME=$(cat "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}") || echo "DOCKER_INFLUXDB_INIT_USERNAME_FILE defined, but file not existing, skipping."; fi
+if [ -n "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ] && DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=$(cat "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}") || echo "DOCKER_INFLUXDB_INIT_USERNAME_FILE defined, but file not existing, skipping."; fi
 
 # List of env vars required to auto-run setup or upgrade processes.
 declare -ra REQUIRED_INIT_VARS=(
@@ -401,13 +417,24 @@ function init_influxd () {
       final_host_scheme="https"
     fi
 
+    case ${INFLUXD_CONFIG_PATH,,} in
+      *.toml)       local influxd_config_format=toml ;;
+      *.json)       local influxd_config_format=json ;;
+      *.yaml|*.yml) local influxd_config_format=yaml ;;
+    esac
+
     # Generate a config file with a known HTTP port, and TLS disabled.
     local -r init_config=/tmp/config.json
-    yq --tojson eval '
-      .http-bind-address = "'"${init_bind_addr}"'"
-        | del(.tls-cert)
-        | del(.tls-key)
-    ' ${INFLUXD_CONFIG_PATH} | tee "${init_config}"
+    (
+      dasel -r "${influxd_config_format}" -w json \
+        | dasel -r json put http-bind-address -v "${init_bind_addr}" \
+        `# insert "tls-cert" and "tls-key" so delete succeeds` \
+        | dasel -r json put tls-cert -v ''                     \
+        | dasel -r json put tls-key  -v ''                     \
+        `# delete "tls-cert" and "tls-key"` \
+        | dasel -r json delete tls-cert     \
+        | dasel -r json delete tls-key
+    ) <"${INFLUXD_CONFIG_PATH}" | tee "${init_config}"
 
     # Start influxd in the background.
     log info "booting influxd server in the background"
@@ -481,7 +508,7 @@ function main () {
     if [ -f "${BOLT_PATH}" ]; then
         log info "found existing boltdb file, skipping setup wrapper" bolt_path "${BOLT_PATH}"
     elif [ -z "${DOCKER_INFLUXDB_INIT_MODE}" ]; then
-        log warn "boltdb not found at configured path, but DOCKER_INFLUXDB_INIT_MODE not specified, skipping setup wrapper" bolt_path "${bolt_path}"
+        log warn "boltdb not found at configured path, but DOCKER_INFLUXDB_INIT_MODE not specified, skipping setup wrapper" bolt_path "${BOLT_PATH}"
     else
         init_influxd "${@}"
         # Set correct permission on volume directories again. This is necessary so that if the container was run as the
@@ -492,7 +519,6 @@ function main () {
 
     if [ "$(id -u)" = 0 ]; then
         exec su-exec influxdb "$BASH_SOURCE" "${@}"
-        return
     fi
 
     # Run influxd.
