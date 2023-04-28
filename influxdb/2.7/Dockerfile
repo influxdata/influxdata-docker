@@ -49,7 +49,7 @@ RUN case "$(dpkg --print-architecture)" in \
     gosu nobody true
 
 # Install the influxd server
-ENV INFLUXDB_VERSION 2.7.0
+ENV INFLUXDB_VERSION 2.7.1
 RUN case "$(dpkg --print-architecture)" in \
       *amd64) arch=amd64 ;; \
       *arm64) arch=arm64 ;; \
@@ -71,7 +71,7 @@ RUN case "$(dpkg --print-architecture)" in \
     influxd version
 
 # Install the influx CLI
-ENV INFLUX_CLI_VERSION 2.7.1
+ENV INFLUX_CLI_VERSION 2.7.3
 RUN case "$(dpkg --print-architecture)" in \
       *amd64) arch=amd64 ;; \
       *arm64) arch=arm64 ;; \
