@@ -29,7 +29,7 @@ RUN groupadd -r influxdb --gid=1000 && \
     useradd -r -g influxdb --uid=1000 --create-home --home-dir=/home/influxdb --shell=/bin/bash influxdb
 
 # Install gosu for easy step-down from root
-ENV GOSU_VER 1.12
+ENV GOSU_VER 1.16
 RUN case "$(dpkg --print-architecture)" in \
       *amd64) arch=amd64 ;; \
       *arm64) arch=arm64 ;; \
