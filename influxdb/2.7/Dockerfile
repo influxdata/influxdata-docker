@@ -1,4 +1,4 @@
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     # install dependencies \
