@@ -17,10 +17,10 @@ RUN case "$(dpkg --print-architecture)" in \
       *arm64) arch=arm64 ;; \
       *) echo 'Unsupported architecture' && exit 1 ;; \
     esac && \
-    curl -fLo /usr/local/bin/dasel "https://github.com/TomWright/dasel/releases/download/v2.1.2/dasel_linux_${arch}" && \
+    curl -fLo /usr/local/bin/dasel "https://github.com/TomWright/dasel/releases/download/v2.3.0/dasel_linux_${arch}" && \
     case ${arch} in \
-      amd64) echo 'e4b43d8c7d76904e2401dc81de0900d9cb69b006794ff3901ec5d50e96baa8ef  /usr/local/bin/dasel' ;; \
-      arm64) echo '92b83f30949679197403ff7a7e0f9ef3e458c1c55031d9c1bc112364e487d57d  /usr/local/bin/dasel' ;; \
+      amd64) echo '7395680e9b75232ff0d012848874d4c0c4a04e17d1fb118e9439fb143016598b  /usr/local/bin/dasel' ;; \
+      arm64) echo '98eb97186afeaddf143a856d6a0324cd040694824ce7452523963fc2d658461c  /usr/local/bin/dasel' ;; \
     esac | sha256sum -c - && \
     chmod +x /usr/local/bin/dasel && \
     dasel --version
