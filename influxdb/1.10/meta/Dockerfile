@@ -9,12 +9,12 @@ RUN set -ex && \
         gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys "$key" ; \
     done
 
-ENV INFLUXDB_VERSION 1.10.4-c1.10.4
-RUN wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta_${INFLUXDB_VERSION}_amd64.deb.asc && \
-    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta_${INFLUXDB_VERSION}_amd64.deb && \
-    gpg --batch --verify influxdb-meta_${INFLUXDB_VERSION}_amd64.deb.asc influxdb-meta_${INFLUXDB_VERSION}_amd64.deb && \
-    dpkg -i influxdb-meta_${INFLUXDB_VERSION}_amd64.deb && \
-    rm -f influxdb-meta_${INFLUXDB_VERSION}_amd64.deb*
+ENV INFLUXDB_VERSION 1.10.5-c1.10.5
+RUN wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta_${INFLUXDB_VERSION}-1_amd64.deb.asc && \
+    wget --no-verbose https://dl.influxdata.com/enterprise/releases/influxdb-meta_${INFLUXDB_VERSION}-1_amd64.deb && \
+    gpg --batch --verify influxdb-meta_${INFLUXDB_VERSION}-1_amd64.deb.asc influxdb-meta_${INFLUXDB_VERSION}-1_amd64.deb && \
+    dpkg -i influxdb-meta_${INFLUXDB_VERSION}-1_amd64.deb && \
+    rm -f influxdb-meta_${INFLUXDB_VERSION}-1_amd64.deb*
 COPY influxdb-meta.conf /etc/influxdb/influxdb-meta.conf
 
 EXPOSE 8091
