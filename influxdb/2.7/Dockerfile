@@ -49,7 +49,7 @@ RUN case "$(dpkg --print-architecture)" in \
     gosu nobody true
 
 # Install the influxd server
-ENV INFLUXDB_VERSION 2.7.1
+ENV INFLUXDB_VERSION 2.7.3
 RUN case "$(dpkg --print-architecture)" in \
       *amd64) arch=amd64 ;; \
       *arm64) arch=arm64 ;; \
@@ -59,14 +59,14 @@ RUN case "$(dpkg --print-architecture)" in \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
       # InfluxData Package Signing Key <support@influxdata.com>
       9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
-    curl -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz" \
-         -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz.asc" && \
-    gpg --batch --verify "influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz.asc" \
-                         "influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz" && \
-    tar xzf "influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz" && \
-    cp "influxdb2_linux_${arch}/influxd" /usr/local/bin/influxd && \
-    rm -rf "influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz" \
-           "influxdb2-${INFLUXDB_VERSION}-linux-${arch}.tar.gz.asc" \
+    curl -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz" \
+         -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz.asc" && \
+    gpg --batch --verify "influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz.asc" \
+                         "influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz" && \
+    tar xzf "influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz" && \
+    cp "influxdb2-${INFLUXDB_VERSION}/usr/bin/influxd" /usr/local/bin/influxd && \
+    rm -rf "influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz" \
+           "influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz.asc" \
            "influxdb2_linux_${arch}" && \
     influxd version
 
