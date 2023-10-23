@@ -151,7 +151,6 @@ function influxd::config::get()
   #
 
   local value
-  local default
 
   # If no command line arguments match, retrieve the corresponding environment
   # variable. This differentiates between unset and empty variables. If empty,
@@ -166,34 +165,8 @@ function influxd::config::get()
   # Parse Value from Configuration
   #
 
-  case ${INFLUXD_CONFIG_PATH,,} in
-    *.toml)       local influxd_config_format=toml ;;
-    *.json)       local influxd_config_format=json ;;
-    *.yaml|*.yml) local influxd_config_format=yaml ;;
-  esac
-
-  # Unfortunately, dasel does not provide a method to test for the existence
-  # of a particular key. However, it returns with an error if it attempts to
-  # delete a nonexistent key. Since dasel will automatically update the
-  # configuration file, it is passed via `STDIN` to avoid this behavior.
-  if dasel -r "${influxd_config_format}" delete "${primary_key}" <"${INFLUXD_CONFIG_PATH}" &>/dev/null
-  then
-    # Unfortunately, dasel has inconsistent string displaying behavior. For
-    # yaml and toml, it will display the value without double-quotes unless
-    # the string is empty. However, for json, it always with double-quotes.
-    # This always strips the first leading and trailing double-quotes, as
-    # they are almost always not required.
-    value="$(dasel -f "${INFLUXD_CONFIG_PATH}" -s "${primary_key}")"
-
-    ( # strip leading and trailing " characters
-      shopt -s extglob
-      value="${value#'"'}"
-      value="${value%'"'}"
-      echo "${value}"
-    )
-  else
+  dasel -f "${INFLUXD_CONFIG_PATH}" -s "${primary_key}" -w - 2>/dev/null || \
     table::get "${primary_key}" "${COLUMN_DEFAULT}"
-  fi
 }
 
 function set_data_paths () {
