@@ -1,10 +1,10 @@
-FROM alpine:3.17
+FROM alpine:3.19
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache iputils ca-certificates net-snmp-tools procps lm_sensors tzdata su-exec libcap && \
     update-ca-certificates
 
-ENV TELEGRAF_VERSION 1.26.3
+ENV TELEGRAF_VERSION 1.29.0
 
 RUN ARCH= && \
     case "$(apk --print-arch)" in \
