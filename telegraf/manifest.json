@@ -2,7 +2,8 @@
   "name": "telegraf",
   "maintainers": [
     "Josh Powers <jpowers@influxdata.com> (@powersj)",
-    "Sven Rebhan <srebhan@influxdata.com> (@srebhan)"
+    "Sven Rebhan <srebhan@influxdata.com> (@srebhan)",
+    "Dane Strandboge <dstrandboge@influxdata.com> (@DStrand1)"
   ],
   "versions": [
     "1.27",
