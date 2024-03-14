@@ -18,7 +18,7 @@ else
     # (also removes 'telegraf' since we unconditionally add it and don't want it listed twice)
     # see https://github.com/influxdata/influxdata-docker/issues/724
     groups="telegraf"
-    extra_groups="$(id -Gn)"
+    extra_groups="$(id -Gn || true)"
     for group in $extra_groups; do
         case "$group" in
             root | telegraf) ;;
