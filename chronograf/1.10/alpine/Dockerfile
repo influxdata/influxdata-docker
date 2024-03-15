@@ -1,7 +1,7 @@
 FROM alpine:3.18
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache ca-certificates && \
+RUN apk add --no-cache ca-certificates su-exec && \
     update-ca-certificates
 
 ENV CHRONOGRAF_VERSION 1.10.3
@@ -25,7 +25,11 @@ RUN set -ex && \
     cp -a /usr/src/chronograf-*/* /usr/bin/ && \
     gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
-    apk del .build-deps
+    apk del .build-deps && \
+    addgroup -S chronograf && \
+    adduser -S chronograf -G chronograf && \
+    mkdir -p /var/lib/chronograf && \
+    chown -R chronograf:chronograf /var/lib/chronograf
 
 COPY LICENSE /usr/share/chronograf/LICENSE
 COPY agpl-3.0.md /usr/share/chronograf/agpl-3.0.md

@@ -9,4 +9,8 @@ if [ "$1" = 'chronograf' ]; then
   export BOLT_PATH=${BOLT_PATH:-/var/lib/chronograf/chronograf-v1.db}
 fi
 
-exec "$@"
+if [ "$(id -u)" -ne 0 ]; then
+    exec "$@"
+else
+    exec setpriv --reuid chronograf --regid chronograf --init-groups "$@"
+fi
