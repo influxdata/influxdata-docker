@@ -28,8 +28,8 @@ RUN set -ex && \
     apk del .build-deps && \
     addgroup -S chronograf && \
     adduser -S chronograf -G chronograf && \
-    mkdir -p /var/lib/chronograf && \
-    chown -R chronograf:chronograf /var/lib/chronograf
+    mkdir -m 0750 -p /var/lib/chronograf && \
+    chown chronograf:chronograf /var/lib/chronograf
 
 COPY LICENSE /usr/share/chronograf/LICENSE
 COPY agpl-3.0.md /usr/share/chronograf/agpl-3.0.md
