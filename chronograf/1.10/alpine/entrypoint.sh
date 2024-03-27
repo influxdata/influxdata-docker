@@ -9,7 +9,7 @@ if [ "$1" = 'chronograf' ]; then
   export BOLT_PATH=${BOLT_PATH:-/var/lib/chronograf/chronograf-v1.db}
 fi
 
-if [ "$(id -u)" -ne 0 ] || { [ ! -z "${CHRONOGRAF_AS_ROOT}" ] && [ "${CHRONOGRAF_AS_ROOT}" != "false" ]; }; then
+if [ "$(id -u)" -ne 0 ] || [ "${CHRONOGRAF_AS_ROOT}" = "true" ]; then
     exec "$@"
 else
     exec su-exec chronograf "$@"
