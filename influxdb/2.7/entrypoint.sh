@@ -46,14 +46,14 @@ function log () {
         return
     fi
 
-    local attrs='"system": "docker"'
+    local attrs="system=docker"
     while [ "$#" -gt 1 ]; do
-        attrs="${attrs}, \"$1\": \"$2\""
+        attrs="${attrs} $1: $2"
         shift 2
     done
 
     local -r logtime="$(date --utc +'%FT%T.%NZ')"
-    1>&2 echo -e "${logtime}\t${level}\t${msg}\t{${attrs}}"
+    1>&2 echo -e "ts=${logtime} lvl=${level} msg=\"${msg}\" ${attrs}"
 }
 
 # Set the global log-level for the entry-point to match the config passed to influxd.
