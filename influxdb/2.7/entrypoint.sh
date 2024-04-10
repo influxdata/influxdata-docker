@@ -52,7 +52,7 @@ function log () {
         shift 2
     done
 
-    local -r logtime="$(date --utc +'%FT%T.%NZ')"
+    local -r logtime=$(date --utc +%FT%T.%6NZ)
     1>&2 echo -e "ts=${logtime} lvl=${level} msg=\"${msg}\" ${attrs}"
 }
 
