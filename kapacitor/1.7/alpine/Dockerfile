@@ -1,7 +1,7 @@
 FROM alpine:3.18
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache ca-certificates && \
+RUN apk add --no-cache ca-certificates su-exec && \
     update-ca-certificates
 
 ENV KAPACITOR_VERSION 1.7.3
@@ -23,8 +23,14 @@ RUN set -ex && \
     cp -ar /usr/src/kapacitor-*/* / && \
     gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
-    apk del .build-deps
+    apk del .build-deps && \
+    addgroup -S kapacitor && \
+    adduser -S kapacitor -G kapacitor && \
+    mkdir -m 0750 -p /var/lib/kapacitor && \
+    chown kapacitor:kapacitor /var/lib/kapacitor
+
 COPY kapacitor.conf /etc/kapacitor/kapacitor.conf
+
 EXPOSE 9092
 
 VOLUME /var/lib/kapacitor
