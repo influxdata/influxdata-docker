@@ -8,4 +8,8 @@ fi
 KAPACITOR_HOSTNAME=${KAPACITOR_HOSTNAME:-$HOSTNAME}
 export KAPACITOR_HOSTNAME
 
-exec "$@"
+if [ "$(id -u)" -ne 0 ] || [ "${KAPACITOR_AS_ROOT}" = "true" ]; then
+    exec "$@"
+else
+    exec su-exec kapacitor "$@"
+fi
