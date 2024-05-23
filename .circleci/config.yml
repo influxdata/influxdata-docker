@@ -56,11 +56,10 @@ jobs:
       product:
         type: string
     docker:
-      - image: cimg/go:1.15.6
+      - image: cimg/go:1.22
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.14
+      - setup_remote_docker
       - run: |
           ./circle-test.sh "<< parameters.product >>"
 
@@ -82,7 +81,7 @@ jobs:
 
   publish_docker_images:
     docker:
-      - image: 'cimg/python:3.6'
+      - image: 'cimg/python:3.10'
     steps:
       - checkout
       - run:
