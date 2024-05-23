@@ -1,4 +1,4 @@
-FROM alpine:3.16
+FROM alpine:3
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache ca-certificates && \
