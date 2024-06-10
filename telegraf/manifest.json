@@ -17,7 +17,11 @@
   ],
   "variants": [
     {
-      "name": "alpine"
+      "name": "alpine",
+      "architectures": [
+        "amd64",
+        "arm64v8"
+      ]
     }
   ]
 }
