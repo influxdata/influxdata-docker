@@ -6,17 +6,21 @@ RUN apk add --no-cache \
       tzdata && \
     update-ca-certificates
 
-ARG TARGETARCH
 ARG INFLUXDB_VERSION=1.11.7
-ARG INFLUXDB_TAR=influxdb-${INFLUXDB_VERSION}-linux-${TARGETARCH}.tar.gz
-ARG INFLUXDB_ASC=influxdb-${INFLUXDB_VERSION}-linux-${TARGETARCH}.tar.gz.asc
 RUN apk add --no-cache --virtual .build-deps \
       curl \
       gnupg \
       tar && \
     gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys 9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
-    curl -fLO "https://dl.influxdata.com/influxdb/releases/${INFLUXDB_ASC}" && \
+    case "$(apk --print-arch)" in \
+      x86_64)  ARCH=amd64 ;; \
+      aarch64) ARCH=arm64 ;; \
+      *) exit 1 ;; \
+    esac && \
+    export INFLUXDB_TAR=influxdb-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
+    export INFLUXDB_ASC=influxdb-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc && \
     curl -fLO "https://dl.influxdata.com/influxdb/releases/${INFLUXDB_TAR}" && \
+    curl -fLO "https://dl.influxdata.com/influxdb/releases/${INFLUXDB_ASC}" && \
     gpg --batch --verify "${INFLUXDB_ASC}" "${INFLUXDB_TAR}" && \
     tar -xf "${INFLUXDB_TAR}" -C /usr/bin \
       ./influx \
