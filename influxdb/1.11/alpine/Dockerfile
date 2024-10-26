@@ -11,7 +11,7 @@ RUN apk add --no-cache --virtual .build-deps \
       curl \
       gnupg \
       tar && \
-    gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys 9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
+    gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys 9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
     case "$(apk --print-arch)" in \
       x86_64)  ARCH=amd64 ;; \
       aarch64) ARCH=arm64 ;; \
@@ -31,8 +31,8 @@ RUN apk add --no-cache --virtual .build-deps \
     apk del .build-deps
 COPY influxdb.conf /etc/influxdb/influxdb.conf
 
-RUN addgroup influxdb && \
-    adduser -S -s /bin/false -h /var/lib/influxdb -G influxdb influxdb && \
+RUN addgroup --system --gid 1500 influxdb && \
+    adduser --system --uid 1500 --ingroup influxdb --home /var/lib/influxdb --shell /bin/false influxdb && \
     mkdir -p /var/lib/influxdb && \
     mkdir -p /var/log/influxdb && \
     chown influxdb:influxdb /var/lib/influxdb && \
