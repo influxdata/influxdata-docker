@@ -6,7 +6,7 @@ RUN apk add --no-cache \
       tzdata && \
     update-ca-certificates
 
-ARG INFLUXDB_VERSION=1.11.7
+ARG INFLUXDB_VERSION=1.11.8
 RUN apk add --no-cache --virtual .build-deps \
       curl \
       gnupg \
@@ -23,9 +23,9 @@ RUN apk add --no-cache --virtual .build-deps \
     curl -fLO "https://dl.influxdata.com/influxdb/releases/${INFLUXDB_ASC}" && \
     gpg --batch --verify "${INFLUXDB_ASC}" "${INFLUXDB_TAR}" && \
     tar -xf "${INFLUXDB_TAR}" -C /usr/bin \
-      ./influx \
-      ./influx_inspect \
-      ./influxd && \
+      influx \
+      influx_inspect \
+      influxd && \
     rm -rf "${INFLUXDB_TAR}" \
            "${INFLUXDB_ASC}" && \
     apk del .build-deps
