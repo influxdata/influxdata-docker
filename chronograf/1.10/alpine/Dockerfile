@@ -4,7 +4,7 @@ RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache ca-certificates su-exec && \
     update-ca-certificates
 
-ENV CHRONOGRAF_VERSION 1.10.5
+ENV CHRONOGRAF_VERSION 1.10.6
 
 RUN set -ex && \
     mkdir ~/.gnupg; \
