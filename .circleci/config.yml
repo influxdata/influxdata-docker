@@ -28,6 +28,12 @@ workflows:
           name: build-influxdb
           product: influxdb
       - build:
+          name: build-influxdb3-core
+          product: influxdb3-core
+      - build:
+          name: build-influxdb3-enterprise
+          product: influxdb3-enterprise
+      - build:
           name: build-kapacitor
           product: kapacitor
       - build:
