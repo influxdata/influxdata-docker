@@ -33,6 +33,7 @@ RUN case "$(dpkg --print-architecture)" in \
         "influxdb3-core-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" && \
     # Install InfluxDB3 Core \
     tar --strip-components 1 -C /usr/lib/influxdb3 -xvf "influxdb3-core-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" && \
+    mv /usr/lib/influxdb3/influxdb3 /usr/bin/influxdb3 && \
     chown -R influxdb3:influxdb3 /var/lib/influxdb3 /plugins && \
     chown -R root:root /usr/lib/influxdb3 && \
     # Cleanup \
@@ -52,4 +53,4 @@ ENV LOG_FILTER=info
 EXPOSE 8181
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh"]
-CMD ["serve"]
+CMD ["influxdb3", "serve"]
