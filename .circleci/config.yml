@@ -49,6 +49,8 @@ workflows:
                 - "influxdb/1.10/meta"
                 - "influxdb/1.11/data"
                 - "influxdb/1.11/meta"
+                - "influxdb/1.12/data"
+                - "influxdb/1.12/meta"
 
 jobs:
   build:
