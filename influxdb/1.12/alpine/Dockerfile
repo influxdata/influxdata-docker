@@ -1,34 +1,35 @@
-FROM alpine:3.20
+FROM alpine:3.21
 
-RUN apk add --no-cache \
-      bash \
-      ca-certificates \
-      tzdata && \
+RUN apk add --no-cache bash ca-certificates tzdata && \
     update-ca-certificates
 
 ARG INFLUXDB_VERSION=1.12.0
-RUN apk add --no-cache --virtual .build-deps \
-      curl \
-      gnupg \
-      tar && \
-    gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys 9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
+RUN apk add --no-cache --virtual .build-deps curl gnupg tar && \
     case "$(apk --print-arch)" in \
-      x86_64)  ARCH=amd64 ;; \
-      aarch64) ARCH=arm64 ;; \
-      *) exit 1 ;; \
+        x86_64)  ARCH=amd64 ;; \
+        aarch64) ARCH=arm64 ;; \
+        *) echo 'Unsupported Architecture' ; exit 1 ;; \
     esac && \
-    export INFLUXDB_TAR=influxdb-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz && \
-    export INFLUXDB_ASC=influxdb-${INFLUXDB_VERSION}-linux-${ARCH}.tar.gz.asc && \
-    curl -fLO "https://dl.influxdata.com/influxdb/releases/${INFLUXDB_TAR}" && \
-    curl -fLO "https://dl.influxdata.com/influxdb/releases/${INFLUXDB_ASC}" && \
-    gpg --batch --verify "${INFLUXDB_ASC}" "${INFLUXDB_TAR}" && \
-    tar -xf "${INFLUXDB_TAR}" -C /usr/bin \
-      influx \
-      influx_inspect \
-      influxd && \
-    rm -rf "${INFLUXDB_TAR}" \
-           "${INFLUXDB_ASC}" && \
+    curl -fsSLO "https://dl.influxdata.com/influxdb/releases/v${INFLUXDB_VERSION}/influxdb-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz.asc" \
+         -fsSLO "https://dl.influxdata.com/influxdb/releases/v${INFLUXDB_VERSION}/influxdb-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" && \
+    # Verify InfluxDB 1.X OSS \
+    gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys \
+        # InfluxData Package Signing Key <support@influxdata.com> \
+        9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
+    gpg --batch --verify \
+        "influxdb-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz.asc" \
+        "influxdb-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" && \
+    # Install InfluxDB 1.X OSS \
+    tar -xvf "influxdb-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" \
+        -C / --strip-components 1 --wildcards \
+            'influxdb-*/usr/bin/influx' \
+            'influxdb-*/usr/bin/influx_inspect' \
+            'influxdb-*/usr/bin/influxd' && \
+    # Cleanup \
+    rm "influxdb-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz.asc" \
+       "influxdb-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" && \
     apk del .build-deps
+
 COPY influxdb.conf /etc/influxdb/influxdb.conf
 
 RUN addgroup --system --gid 1500 influxdb && \
