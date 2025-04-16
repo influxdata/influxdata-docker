@@ -1,9 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
-args=( "${@}" )
-for i in "${!args[@]}"; do
-    args[${i}]="$(echo "${args[${i}]}" | envsubst)"
-done
+args=("${@}")
+
+if [[ "${1}" == influxdb3 ]] ; then
+    for i in "${!args[@]}"; do
+        args[i]="$(envsubst <<<"${args[i]}")"
+    done
+fi
 
 exec "${args[@]}"
