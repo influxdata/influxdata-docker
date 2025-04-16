@@ -1,4 +1,4 @@
-FROM alpine:3.20
+FROM alpine:3.21
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache \
