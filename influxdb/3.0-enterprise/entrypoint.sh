@@ -3,7 +3,11 @@ set -euo pipefail
 
 args=("${@}")
 
-if [[ "${1}" == influxdb3 ]] ; then
+if [[ "${args[0]:-}" =~ ^- ]] ; then
+    args=(influxdb3 serve "${args[@]}")
+fi
+
+if [[ "${args[0]:-}" == influxdb3 ]] ; then
     for i in "${!args[@]}"; do
         args[i]="$(envsubst <<<"${args[i]}")"
     done
