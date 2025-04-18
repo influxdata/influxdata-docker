@@ -3,6 +3,10 @@ set -euo pipefail
 
 args=("${@}")
 
+if [[ "${args[0]:-}" == serve ]] ; then
+    args=(influxdb3 "${args[@]}")
+fi
+
 if [[ "${args[0]:-}" =~ ^- ]] ; then
     args=(influxdb3 serve "${args[@]}")
 fi
