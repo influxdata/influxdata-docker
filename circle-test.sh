@@ -34,6 +34,11 @@ tags=()
 # a leading ./ and multiple slashes into a single slash.
 dockerfiles=$(find "$dir" -name Dockerfile -print0 | xargs -0 -I{} dirname {} | grep -v dockerlib | sed 's@^./@@' | sed 's@//*@/@g')
 for path in $dockerfiles; do
+  # TODO(bnpfeife): remove this when v1.12.0 is restored!
+  if [[ "${path}" =~ influxdb[/]1[.]12 ]] ; then
+    continue
+  fi
+
   # Generate a tag by replacing the first slash with a colon and all remaining slashes with a dash.
   tag=$(echo $path | sed 's@/@:@' | sed 's@/@-@g')
   log_msg "Building docker image $tag (from $path)"
