@@ -2,7 +2,7 @@
   "name": "telegraf",
   "maintainers": [
     "Sven Rebhan <srebhan@influxdata.com> (@srebhan)",
-    "Dane Strandboge <dstrandboge@influxdata.com> (@DStrand1)",
+    "Maya Strandboge <mstrandboge@influxdata.com> (@mstrandboge)",
     "Sunil Kartikey <skartikey@influxdata.com> (@skartikey)"
   ],
   "versions": [
