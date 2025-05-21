@@ -31,7 +31,7 @@ RUN addgroup -S -g 1000 influxdb && \
     chown -R influxdb:influxdb /home/influxdb
 
 # Install the infuxd server
-ENV INFLUXDB_VERSION 2.7.11
+ENV INFLUXDB_VERSION 2.7.12
 RUN case "$(apk --print-arch)" in \
       x86_64)  arch=amd64 ;; \
       aarch64) arch=arm64 ;; \
