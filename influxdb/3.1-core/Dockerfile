@@ -16,29 +16,29 @@ RUN groupadd --gid 1500 influxdb3 && \
              /usr/lib/influxdb3 \
              /plugins
 
-ENV INFLUXDB_VERSION=3.0.3
+ENV INFLUXDB_VERSION=3.1.0
 RUN case "$(dpkg --print-architecture)" in \
         amd64) ARCH=amd64 ;; \
         arm64) ARCH=arm64 ;; \
         *) echo 'Unsupported Architecture' ; exit 1 ;; \
     esac && \
-    curl -fsSLO "https://dl.influxdata.com/influxdb/releases/influxdb3-enterprise-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz.asc" \
-         -fsSLO "https://dl.influxdata.com/influxdb/releases/influxdb3-enterprise-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" && \
-    # Verify InfluxDB3 Enterprise \
+    curl -fsSLO "https://dl.influxdata.com/influxdb/releases/influxdb3-core-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz.asc" \
+         -fsSLO "https://dl.influxdata.com/influxdb/releases/influxdb3-core-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" && \
+    # Verify InfluxDB3 Core \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
         # InfluxData Package Signing Key <support@influxdata.com> \
         9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
     gpg --batch --verify \
-        "influxdb3-enterprise-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz.asc" \
-        "influxdb3-enterprise-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" && \
-    # Install InfluxDB3 Enterprise \
-    tar --strip-components 1 -C /usr/lib/influxdb3 -xvf "influxdb3-enterprise-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" && \
+        "influxdb3-core-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz.asc" \
+        "influxdb3-core-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" && \
+    # Install InfluxDB3 Core \
+    tar --strip-components 1 -C /usr/lib/influxdb3 -xvf "influxdb3-core-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" && \
     mv /usr/lib/influxdb3/influxdb3 /usr/bin/influxdb3 && \
     chown -R influxdb3:influxdb3 /var/lib/influxdb3 /plugins && \
     chown -R root:root /usr/lib/influxdb3 && \
     # Cleanup \
-    rm  "influxdb3-enterprise-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz.asc" \
-        "influxdb3-enterprise-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz"
+    rm  "influxdb3-core-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz.asc" \
+        "influxdb3-core-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz"
 
 COPY entrypoint.sh /usr/bin/entrypoint.sh
 
