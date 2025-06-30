@@ -4,7 +4,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends iputils-ping snmp procps lm-sensors libcap2-bin && \
     rm -rf /var/lib/apt/lists/*
 
-ENV TELEGRAF_VERSION nightly
+ENV TELEGRAF_VERSION=nightly
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
     case "${dpkgArch##*-}" in \
       amd64) ARCH='amd64';; \
