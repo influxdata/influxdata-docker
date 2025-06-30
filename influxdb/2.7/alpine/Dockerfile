@@ -31,7 +31,7 @@ RUN addgroup -S -g 1000 influxdb && \
     chown -R influxdb:influxdb /home/influxdb
 
 # Install the infuxd server
-ENV INFLUXDB_VERSION 2.7.12
+ENV INFLUXDB_VERSION=2.7.12
 RUN case "$(apk --print-arch)" in \
       x86_64)  arch=amd64 ;; \
       aarch64) arch=arm64 ;; \
@@ -53,7 +53,7 @@ RUN case "$(apk --print-arch)" in \
     influxd version
 
 # Install the influx CLI
-ENV INFLUX_CLI_VERSION 2.7.5
+ENV INFLUX_CLI_VERSION=2.7.5
 RUN case "$(apk --print-arch)" in \
       x86_64)  arch=amd64 ;; \
       aarch64) arch=arm64 ;; \
@@ -88,7 +88,7 @@ CMD ["influxd"]
 
 EXPOSE 8086
 
-ENV INFLUX_CONFIGS_PATH /etc/influxdb2/influx-configs
-ENV INFLUXD_INIT_PORT 9999
-ENV INFLUXD_INIT_PING_ATTEMPTS 600
-ENV DOCKER_INFLUXDB_INIT_CLI_CONFIG_NAME default
+ENV INFLUX_CONFIGS_PATH=/etc/influxdb2/influx-configs
+ENV INFLUXD_INIT_PORT=9999
+ENV INFLUXD_INIT_PING_ATTEMPTS=600
+ENV DOCKER_INFLUXDB_INIT_CLI_CONFIG_NAME=default
