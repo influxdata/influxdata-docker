@@ -5,7 +5,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     awk 'f{if(sub(/^#/,"",$0)==0){f=0}};/^# enable bash completion/{f=1};{print;}' /etc/bash.bashrc > /etc/bash.bashrc.new && \
     mv /etc/bash.bashrc.new /etc/bash.bashrc
 
-ENV KAPACITOR_VERSION 1.7.7
+ENV KAPACITOR_VERSION=1.7.7
 
 RUN set -eux && \
     ARCH= && dpkgArch="$(dpkg --print-architecture)" && \
