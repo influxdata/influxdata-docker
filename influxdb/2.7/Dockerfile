@@ -29,7 +29,7 @@ RUN groupadd -r influxdb --gid=1000 && \
     useradd -r -g influxdb --uid=1000 --create-home --home-dir=/home/influxdb --shell=/bin/bash influxdb
 
 # Install gosu for easy step-down from root
-ENV GOSU_VER 1.16
+ENV GOSU_VER=1.16
 RUN case "$(dpkg --print-architecture)" in \
       *amd64) arch=amd64 ;; \
       *arm64) arch=arm64 ;; \
@@ -49,7 +49,7 @@ RUN case "$(dpkg --print-architecture)" in \
     gosu nobody true
 
 # Install the influxd server
-ENV INFLUXDB_VERSION 2.7.12
+ENV INFLUXDB_VERSION=2.7.12
 RUN case "$(dpkg --print-architecture)" in \
       *amd64) arch=amd64 ;; \
       *arm64) arch=arm64 ;; \
@@ -71,7 +71,7 @@ RUN case "$(dpkg --print-architecture)" in \
     influxd version
 
 # Install the influx CLI
-ENV INFLUX_CLI_VERSION 2.7.5
+ENV INFLUX_CLI_VERSION=2.7.5
 RUN case "$(dpkg --print-architecture)" in \
       *amd64) arch=amd64 ;; \
       *arm64) arch=arm64 ;; \
@@ -106,7 +106,7 @@ CMD ["influxd"]
 
 EXPOSE 8086
 
-ENV INFLUX_CONFIGS_PATH /etc/influxdb2/influx-configs
-ENV INFLUXD_INIT_PORT 9999
-ENV INFLUXD_INIT_PING_ATTEMPTS 600
-ENV DOCKER_INFLUXDB_INIT_CLI_CONFIG_NAME default
+ENV INFLUX_CONFIGS_PATH=/etc/influxdb2/influx-configs
+ENV INFLUXD_INIT_PORT=9999
+ENV INFLUXD_INIT_PING_ATTEMPTS=600
+ENV DOCKER_INFLUXDB_INIT_CLI_CONFIG_NAME=default
