@@ -1,7 +1,7 @@
-FROM alpine:3.20
+FROM alpine:3.22
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache ca-certificates su-exec && \
+RUN apk add --no-cache ca-certificates setpriv && \
     update-ca-certificates
 
 ENV KAPACITOR_VERSION 1.8.0

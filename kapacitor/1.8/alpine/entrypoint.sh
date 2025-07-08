@@ -11,5 +11,5 @@ export KAPACITOR_HOSTNAME
 if [ "$(id -u)" -ne 0 ] || [ "${KAPACITOR_AS_ROOT}" = "true" ]; then
     exec "$@"
 else
-    exec su-exec kapacitor "$@"
+    exec setpriv --reuid kapacitor --regid kapacitor --init-groups "$@"
 fi
