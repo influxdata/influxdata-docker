@@ -12,5 +12,5 @@ fi
 if [ "$(id -u)" -ne 0 ] || [ "${CHRONOGRAF_AS_ROOT}" = "true" ]; then
     exec "$@"
 else
-    exec setpriv --reuid chronograf --regid chronograf --init-groups chronograf "$@"
+    exec setpriv --reuid chronograf --regid chronograf --init-groups "$@"
 fi
