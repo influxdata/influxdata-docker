@@ -16,6 +16,7 @@ RUN groupadd --gid 1500 influxdb3 && \
              /usr/lib/influxdb3 \
              /plugins
 
+# when re-releasing you can add a comment here and create a separate commit hash in this repo
 ENV INFLUXDB_VERSION=3.4.0
 RUN case "$(dpkg --print-architecture)" in \
         amd64) ARCH=amd64 ;; \
