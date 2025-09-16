@@ -3,7 +3,7 @@ FROM alpine:3.21
 RUN apk add --no-cache bash ca-certificates tzdata && \
     update-ca-certificates
 
-ARG INFLUXDB_VERSION=1.12.0
+ARG INFLUXDB_VERSION=1.12.2
 RUN apk add --no-cache --virtual .build-deps curl gnupg tar && \
     case "$(apk --print-arch)" in \
         x86_64)  ARCH=amd64 ;; \

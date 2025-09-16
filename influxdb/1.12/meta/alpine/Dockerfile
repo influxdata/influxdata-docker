@@ -3,7 +3,7 @@ FROM alpine:3.21
 RUN apk add --no-cache tzdata bash ca-certificates && \
     update-ca-certificates
 
-ENV INFLUXDB_VERSION=1.12.0-c1.12.0
+ENV INFLUXDB_VERSION=1.12.2-c1.12.2
 RUN apk add --no-cache --virtual .build-deps curl gnupg tar && \
     curl -fsSLO "https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}_linux_amd64.tar.gz.asc" \
          -fssLO "https://dl.influxdata.com/enterprise/releases/influxdb-meta-${INFLUXDB_VERSION}_linux_amd64.tar.gz" && \

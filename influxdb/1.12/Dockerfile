@@ -3,7 +3,7 @@ FROM buildpack-deps:bookworm-curl
 RUN addgroup --system --gid 1500 influxdb && \
     adduser --system --uid 1500 --ingroup influxdb --home /var/lib/influxdb --shell /bin/false influxdb
 
-ARG INFLUXDB_VERSION=1.12.0
+ARG INFLUXDB_VERSION=1.12.2
 RUN set -x && \
     case "$(dpkg --print-architecture)" in \
         amd64) ARCH=amd64 ;; \

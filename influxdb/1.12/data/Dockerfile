@@ -1,6 +1,6 @@
 FROM buildpack-deps:bookworm-curl
 
-ENV INFLUXDB_VERSION=1.12.0-c1.12.0
+ENV INFLUXDB_VERSION=1.12.2-c1.12.2
 RUN curl -fsSLO "https://dl.influxdata.com/enterprise/releases/influxdb-data_${INFLUXDB_VERSION}-1_amd64.deb.asc" \
          -fssLO "https://dl.influxdata.com/enterprise/releases/influxdb-data_${INFLUXDB_VERSION}-1_amd64.deb" && \
     # Verify InfluxDB 1.X Enterprise \
