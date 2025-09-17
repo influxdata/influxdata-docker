@@ -4,7 +4,7 @@ RUN addgroup --system --gid 1500 influxdb && \
     adduser --system --uid 1500 --ingroup influxdb --home /var/lib/influxdb --shell /bin/false influxdb
 
 ARG INFLUXDB_VERSION=1.11.8
-RUN gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys 9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
+RUN gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys 24C975CBA61A024EE1B631787C3D57159FC2F927 && \
     export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     case "$(dpkg --print-architecture)" in \

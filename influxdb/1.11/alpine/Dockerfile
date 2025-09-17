@@ -11,7 +11,7 @@ RUN apk add --no-cache --virtual .build-deps \
       curl \
       gnupg \
       tar && \
-    gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys 9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
+    gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys 24C975CBA61A024EE1B631787C3D57159FC2F927 && \
     case "$(apk --print-arch)" in \
       x86_64)  ARCH=amd64 ;; \
       aarch64) ARCH=arm64 ;; \
