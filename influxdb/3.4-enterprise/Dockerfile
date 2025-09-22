@@ -27,7 +27,7 @@ RUN case "$(dpkg --print-architecture)" in \
     # Verify InfluxDB3 Enterprise \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
         # InfluxData Package Signing Key <support@influxdata.com> \
-        9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
+        24C975CBA61A024EE1B631787C3D57159FC2F927 && \
     gpg --batch --verify \
         "influxdb3-enterprise-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz.asc" \
         "influxdb3-enterprise-${INFLUXDB_VERSION}_linux_${ARCH}.tar.gz" && \

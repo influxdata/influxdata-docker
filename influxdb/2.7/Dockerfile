@@ -58,7 +58,7 @@ RUN case "$(dpkg --print-architecture)" in \
     export GNUPGHOME="$(mktemp -d)" && \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
       # InfluxData Package Signing Key <support@influxdata.com>
-      9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
+      24C975CBA61A024EE1B631787C3D57159FC2F927 && \
     curl -fLO "https://dl.influxdata.com/influxdb/releases/v${INFLUXDB_VERSION}/influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz" \
          -fLO "https://dl.influxdata.com/influxdb/releases/v${INFLUXDB_VERSION}/influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz.asc" && \
     gpg --batch --verify "influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz.asc" \
@@ -80,7 +80,7 @@ RUN case "$(dpkg --print-architecture)" in \
     export GNUPGHOME="$(mktemp -d)" && \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
       # InfluxData Package Signing Key <support@influxdata.com>
-      9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
+      24C975CBA61A024EE1B631787C3D57159FC2F927 && \
     curl -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" \
          -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc" && \
     gpg --batch --verify "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc" \
