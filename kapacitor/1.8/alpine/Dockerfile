@@ -4,7 +4,7 @@ RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache ca-certificates setpriv && \
     update-ca-certificates
 
-ENV KAPACITOR_VERSION 1.8.1
+ENV KAPACITOR_VERSION 1.8.2
 
 RUN set -ex && \
     mkdir ~/.gnupg; \
