@@ -47,6 +47,7 @@ RUN mkdir ~/.influxdb3
 
 ENV INFLUXDB3_PLUGIN_DIR=/plugins
 ENV INFLUXDB3_DATA_DIR=/home/influxdb3/.influxdb3
+ENV INFLUXDB3_SERVE_INVOCATION_METHOD=docker-hub
 ENV INFLUXDB_IOX_DB_DIR=/var/lib/influxdb3
 ENV LOG_FILTER=info
 
