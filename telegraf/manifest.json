@@ -6,9 +6,9 @@
     "Sunil Kartikey <skartikey@influxdata.com> (@skartikey)"
   ],
   "versions": [
-    "1.34",
     "1.35",
-    "1.36"
+    "1.36",
+    "1.37"
   ],
   "architectures": [
     "amd64",
