@@ -1,4 +1,4 @@
-FROM buildpack-deps:bookworm-curl
+FROM buildpack-deps:trixie-curl
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends iputils-ping snmp procps lm-sensors libcap2-bin && \
