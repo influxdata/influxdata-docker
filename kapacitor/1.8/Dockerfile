@@ -1,4 +1,4 @@
-FROM buildpack-deps:jammy-curl
+FROM buildpack-deps:noble-curl
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y bash-completion && \
