@@ -33,6 +33,7 @@ COPY kapacitor.conf /etc/kapacitor/kapacitor.conf
 EXPOSE 9092
 
 VOLUME /var/lib/kapacitor
+USER kapacitor:kapacitor
 
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
