@@ -1,0 +1,19 @@
+{
+  "name": "influx-cli",
+  "maintainers": [
+    "Jonathan A. Sternberg jonathan@influxdata.com (@jsternberg)",
+    "Bucky Schwarz bucky@influxdata.com (@hoorayimhelping)",
+    "Brandon Pfeifer bpfeifer@influxdata.com (@bnpfeife)"	  
+  ],
+  "versions": ["2.2"],
+  "architectures": [
+    "amd64",
+    "arm32v7",
+    "arm64v8"
+  ],
+  "variants": [
+    {
+      "name": "alpine"
+    }
+  ]
+}
