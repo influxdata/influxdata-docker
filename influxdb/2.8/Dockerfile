@@ -17,13 +17,13 @@ RUN case "$(dpkg --print-architecture)" in \
       *arm64) arch=arm64 ;; \
       *) echo 'Unsupported architecture' && exit 1 ;; \
     esac && \
-    curl -fL "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_${arch}.gz" | gzip -d > /usr/local/bin/dasel && \
+    curl -fL "https://github.com/TomWright/dasel/releases/download/v3.2.2/dasel_linux_${arch}.gz" | gzip -d > /usr/local/bin/dasel && \
     case ${arch} in \
-      amd64) echo '21fda0a4dc3c779c42737eca4b37e4f187d7ab91ba6301eed97b801af84a9ea2  /usr/local/bin/dasel' ;; \
-      arm64) echo '2c75e63f9884c37578f48788819dda5a5a5c32ec6c4a663eefc19839f44d6291  /usr/local/bin/dasel' ;; \
+      amd64) echo '313f055bd8c7c59bb8a9cad863f0685769d6f8a93b5f9b9a0986c95c76513832  /usr/local/bin/dasel' ;; \
+      arm64) echo '135ac22a599fca49d48af44bd5dfa83bccdd91cd813c34c018e3574f76e842e6  /usr/local/bin/dasel' ;; \
     esac | sha256sum -c - && \
     chmod +x /usr/local/bin/dasel && \
-    dasel --version
+    dasel version
 
 RUN groupadd -r influxdb --gid=1000 && \
     useradd -r -g influxdb --uid=1000 --create-home --home-dir=/home/influxdb --shell=/bin/bash influxdb
