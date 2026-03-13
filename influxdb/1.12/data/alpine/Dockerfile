@@ -19,7 +19,7 @@ RUN apk add --no-cache --virtual .build-deps curl gnupg tar && \
         "influxdb-data-${INFLUXDB_PV}_linux_amd64.tar.gz" && \
     # Install InfluxDB 1.X Enterprise \
     tar -xvf "influxdb-data-${INFLUXDB_PV}_linux_amd64.tar.gz" \
-        -C / --strip-components 1 --wildcards \
+        -C /usr/bin --strip-components 1 --wildcards \
             'influxdb-*/influx' \
             'influxdb-*/influx_inspect' \
             'influxdb-*/influxd' && \

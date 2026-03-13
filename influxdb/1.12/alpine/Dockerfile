@@ -24,7 +24,7 @@ RUN apk add --no-cache --virtual .build-deps curl gnupg tar && \
         "influxdb-${INFLUXDB_PV}_linux_${ARCH}.tar.gz" && \
     # Install InfluxDB 1.X OSS \
     tar -xvf "influxdb-${INFLUXDB_PV}_linux_${ARCH}.tar.gz" \
-        -C / --strip-components 1 --wildcards \
+        -C /usr/bin --strip-components 1 --wildcards \
             'influxdb-*/influx' \
             'influxdb-*/influx_inspect' \
             'influxdb-*/influxd' && \
