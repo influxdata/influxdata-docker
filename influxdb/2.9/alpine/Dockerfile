@@ -1,4 +1,7 @@
-FROM golang:1.25-alpine AS dasel-builder
+FROM golang:1.25.8-alpine AS dasel-builder
+# Build dasel from source with a current Go toolchain to avoid CVEs from the
+# stale upstream release binaries (compiled with Go 1.21).
+# Source integrity is verified by Go's checksum database (sum.golang.org).
 RUN go install github.com/tomwright/dasel/v2/cmd/dasel@v2.8.1
 
 FROM alpine:3.21
