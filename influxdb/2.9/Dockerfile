@@ -1,48 +1,39 @@
-FROM alpine:3.21
+FROM golang:1.25 AS dasel-builder
+RUN go install github.com/tomwright/dasel/v2/cmd/dasel@v2.8.1
 
-RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
-RUN apk add --no-cache \
-      bash \
+FROM debian:bookworm-slim
+
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    # install dependencies \
+    apt-get update -y && \
+    apt-get install -y --no-install-recommends \
       ca-certificates \
       curl \
       gnupg \
-      run-parts \
-      su-exec \
-      tzdata && \
-    update-ca-certificates
+      util-linux && \
+    # cleanup apt \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install dasel for configuration parsing
-RUN case "$(apk --print-arch)" in \
-      x86_64)  arch=amd64 ;; \
-      aarch64) arch=arm64 ;; \
-      *) echo 'Unsupported architecture' && exit 1 ;; \
-    esac && \
-    curl -fL "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_${arch}.gz" | gzip -d > /usr/local/bin/dasel && \
-    case ${arch} in \
-      amd64) echo '21fda0a4dc3c779c42737eca4b37e4f187d7ab91ba6301eed97b801af84a9ea2  /usr/local/bin/dasel' ;; \
-      arm64) echo '2c75e63f9884c37578f48788819dda5a5a5c32ec6c4a663eefc19839f44d6291  /usr/local/bin/dasel' ;; \
-    esac | sha256sum -c - && \
-    chmod +x /usr/local/bin/dasel && \
-    dasel --version
+# Install dasel for configuration parsing, built with a current Go toolchain.
+COPY --from=dasel-builder /go/bin/dasel /usr/local/bin/dasel
 
-RUN addgroup -S -g 1000 influxdb && \
-    adduser -S -G influxdb -u 1000 -h /home/influxdb -s /bin/sh influxdb && \
-    mkdir -p /home/influxdb && \
-    chown -R influxdb:influxdb /home/influxdb
+RUN groupadd -r influxdb --gid=1000 && \
+    useradd -r -g influxdb --uid=1000 --create-home --home-dir=/home/influxdb --shell=/bin/bash influxdb
 
-# Install the infuxd server
-ENV INFLUXDB_VERSION=2.8.0
+# Install the influxd server
+ENV INFLUXDB_VERSION=2.9.0
 ENV INFLUXDB_PR=-2
 ENV INFLUXDB_PV=${INFLUXDB_VERSION}${INFLUXDB_PR}
-RUN case "$(apk --print-arch)" in \
-      x86_64)  arch=amd64 ;; \
-      aarch64) arch=arm64 ;; \
+RUN case "$(dpkg --print-architecture)" in \
+      *amd64) arch=amd64 ;; \
+      *arm64) arch=arm64 ;; \
       *) echo 'Unsupported architecture' && exit 1 ;; \
     esac && \
     export GNUPGHOME="$(mktemp -d)" && \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
       # InfluxData Package Signing Key <support@influxdata.com>
-      24C975CBA61A024EE1B631787C3D57159FC2F927 &&\
+      24C975CBA61A024EE1B631787C3D57159FC2F927 && \
     curl -fLO "https://dl.influxdata.com/influxdb/releases/v${INFLUXDB_VERSION}/influxdb2-${INFLUXDB_PV}_linux_${arch}.tar.gz" \
          -fLO "https://dl.influxdata.com/influxdb/releases/v${INFLUXDB_VERSION}/influxdb2-${INFLUXDB_PV}_linux_${arch}.tar.gz.asc" && \
     gpg --batch --verify "influxdb2-${INFLUXDB_PV}_linux_${arch}.tar.gz.asc" \
@@ -56,9 +47,9 @@ RUN case "$(apk --print-arch)" in \
 
 # Install the influx CLI
 ENV INFLUX_CLI_VERSION=2.7.5
-RUN case "$(apk --print-arch)" in \
-      x86_64)  arch=amd64 ;; \
-      aarch64) arch=arm64 ;; \
+RUN case "$(dpkg --print-architecture)" in \
+      *amd64) arch=amd64 ;; \
+      *arm64) arch=arm64 ;; \
       *) echo 'Unsupported architecture' && exit 1 ;; \
     esac && \
     export GNUPGHOME="$(mktemp -d)" && \

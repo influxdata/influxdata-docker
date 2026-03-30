@@ -164,6 +164,7 @@ function influxd::config::get()
   #
   # Parse Value from Configuration
   #
+
   dasel -f "${INFLUXD_CONFIG_PATH}" -s "${primary_key}" -w - 2>/dev/null || \
     table::get "${primary_key}" "${COLUMN_DEFAULT}"
 }
@@ -195,7 +196,7 @@ function create_directories () {
 # Read password and username from file to avoid unsecure env variables
 if [ -n "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}" ] && DOCKER_INFLUXDB_INIT_PASSWORD=$(cat "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}") || echo "DOCKER_INFLUXDB_INIT_PASSWORD_FILE defined, but file not existing, skipping."; fi
 if [ -n "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}" ] && DOCKER_INFLUXDB_INIT_USERNAME=$(cat "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}") || echo "DOCKER_INFLUXDB_INIT_USERNAME_FILE defined, but file not existing, skipping."; fi
-if [ -n "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ] && DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=$(cat "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}") || echo "DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE defined, but file not existing, skipping."; fi
+if [ -n "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ] && DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=$(cat "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}") || echo "DOCKER_INFLUXDB_INIT_USERNAME_FILE defined, but file not existing, skipping."; fi
 
 # List of env vars required to auto-run setup or upgrade processes.
 declare -ra REQUIRED_INIT_VARS=(
@@ -490,7 +491,7 @@ function main () {
     fi
 
     if [ "$(id -u)" = 0 ]; then
-        exec gosu influxdb "$BASH_SOURCE" "${@}"
+        exec setpriv --reuid=influxdb --regid=influxdb --init-groups "$BASH_SOURCE" "${@}"
     fi
 
     # Run influxd.

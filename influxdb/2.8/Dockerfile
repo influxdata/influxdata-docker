@@ -1,6 +1,3 @@
-FROM golang:1.25 AS dasel-builder
-RUN go install github.com/tomwright/dasel/v2/cmd/dasel@v2.8.1
-
 FROM debian:bookworm-slim
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
@@ -9,17 +6,47 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get install -y --no-install-recommends \
       ca-certificates \
       curl \
-      gnupg \
-      util-linux && \
+      gnupg && \
     # cleanup apt \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install dasel for configuration parsing, built with a current Go toolchain.
-COPY --from=dasel-builder /go/bin/dasel /usr/local/bin/dasel
+# Install dasel for configuration parsing
+RUN case "$(dpkg --print-architecture)" in \
+      *amd64) arch=amd64 ;; \
+      *arm64) arch=arm64 ;; \
+      *) echo 'Unsupported architecture' && exit 1 ;; \
+    esac && \
+    curl -fL "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_${arch}.gz" | gzip -d > /usr/local/bin/dasel && \
+    case ${arch} in \
+      amd64) echo '21fda0a4dc3c779c42737eca4b37e4f187d7ab91ba6301eed97b801af84a9ea2  /usr/local/bin/dasel' ;; \
+      arm64) echo '2c75e63f9884c37578f48788819dda5a5a5c32ec6c4a663eefc19839f44d6291  /usr/local/bin/dasel' ;; \
+    esac | sha256sum -c - && \
+    chmod +x /usr/local/bin/dasel && \
+    dasel --version
 
 RUN groupadd -r influxdb --gid=1000 && \
     useradd -r -g influxdb --uid=1000 --create-home --home-dir=/home/influxdb --shell=/bin/bash influxdb
+
+# Install gosu for easy step-down from root
+ENV GOSU_VER=1.19
+RUN case "$(dpkg --print-architecture)" in \
+      *amd64) arch=amd64 ;; \
+      *arm64) arch=arm64 ;; \
+      *) echo 'Unsupported architecture' && exit 1 ;; \
+    esac && \
+    export GNUPGHOME="$(mktemp -d)" && \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
+      # Tianon Gravi <tianon@tianon.xyz> (gosu)
+      B42F6819007F00F88E364FD4036A9C25BF357DD4 && \
+    curl -fLo /usr/local/bin/gosu     "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-${arch}" \
+         -fLo /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-${arch}.asc" && \
+    gpg --batch --verify /usr/local/bin/gosu.asc \
+                         /usr/local/bin/gosu && \
+    rm -rf /usr/local/bin/gosu.asc && \
+    chmod +x /usr/local/bin/gosu && \
+    gosu --version && \
+    gosu nobody true
 
 # Install the influxd server
 ENV INFLUXDB_VERSION=2.8.0
