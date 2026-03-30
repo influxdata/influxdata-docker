@@ -1,3 +1,6 @@
+FROM golang:1.25-alpine AS dasel-builder
+RUN go install github.com/tomwright/dasel/v2/cmd/dasel@v2.8.1
+
 FROM alpine:3.21
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
@@ -7,23 +10,12 @@ RUN apk add --no-cache \
       curl \
       gnupg \
       run-parts \
-      su-exec \
+      setpriv \
       tzdata && \
     update-ca-certificates
 
-# Install dasel for configuration parsing
-RUN case "$(apk --print-arch)" in \
-      x86_64)  arch=amd64 ;; \
-      aarch64) arch=arm64 ;; \
-      *) echo 'Unsupported architecture' && exit 1 ;; \
-    esac && \
-    curl -fL "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_${arch}.gz" | gzip -d > /usr/local/bin/dasel && \
-    case ${arch} in \
-      amd64) echo '21fda0a4dc3c779c42737eca4b37e4f187d7ab91ba6301eed97b801af84a9ea2  /usr/local/bin/dasel' ;; \
-      arm64) echo '2c75e63f9884c37578f48788819dda5a5a5c32ec6c4a663eefc19839f44d6291  /usr/local/bin/dasel' ;; \
-    esac | sha256sum -c - && \
-    chmod +x /usr/local/bin/dasel && \
-    dasel --version
+# Install dasel for configuration parsing, built with a current Go toolchain.
+COPY --from=dasel-builder /go/bin/dasel /usr/local/bin/dasel
 
 RUN addgroup -S -g 1000 influxdb && \
     adduser -S -G influxdb -u 1000 -h /home/influxdb -s /bin/sh influxdb && \

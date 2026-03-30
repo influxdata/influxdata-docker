@@ -491,7 +491,7 @@ function main () {
     fi
 
     if [ "$(id -u)" = 0 ]; then
-        exec su-exec influxdb "$BASH_SOURCE" "${@}"
+        exec setpriv --reuid=influxdb --regid=influxdb --init-groups "$BASH_SOURCE" "${@}"
     fi
 
     # Run influxd.
