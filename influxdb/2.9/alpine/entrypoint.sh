@@ -164,8 +164,13 @@ function influxd::config::get()
   #
   # Parse Value from Configuration
   #
-
-  dasel -f "${INFLUXD_CONFIG_PATH}" -s "${primary_key}" -w - 2>/dev/null || \
+  local config_format
+  case "${INFLUXD_CONFIG_PATH,,}" in
+    *.toml)       config_format=toml ;;
+    *.json)       config_format=json ;;
+    *)            config_format=yaml ;;
+  esac
+  dasel -i "${config_format}" 'get("'"${primary_key}"'")' < "${INFLUXD_CONFIG_PATH}" 2>/dev/null || \
     table::get "${primary_key}" "${COLUMN_DEFAULT}"
 }
 
@@ -397,16 +402,14 @@ function init_influxd () {
     esac
 
     # Generate a config file with a known HTTP port, and TLS disabled.
+    # TLS keys are set to empty here and also overridden via env vars when
+    # launching influxd below, so explicit deletion is unnecessary.
     local -r init_config=/tmp/config.json
     (
-      dasel -r "${influxd_config_format}" -w json \
-        | dasel -r json put http-bind-address -v "${init_bind_addr}" \
-        `# insert "tls-cert" and "tls-key" so delete succeeds` \
-        | dasel -r json put tls-cert -v ''                     \
-        | dasel -r json put tls-key  -v ''                     \
-        `# delete "tls-cert" and "tls-key"` \
-        | dasel -r json delete tls-cert     \
-        | dasel -r json delete tls-key
+      dasel -i "${influxd_config_format}" -o json \
+        | dasel -i json -o json --root 'get("http-bind-address") = "'"${init_bind_addr}"'"' \
+        | dasel -i json -o json --root 'get("tls-cert") = ""' \
+        | dasel -i json -o json --root 'get("tls-key") = ""'
     ) <"${INFLUXD_CONFIG_PATH}" | tee "${init_config}"
 
     # Start influxd in the background.

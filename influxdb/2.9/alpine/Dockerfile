@@ -1,9 +1,3 @@
-FROM golang:1.25.8-alpine AS dasel-builder
-# Build dasel from source with a current Go toolchain to avoid CVEs from the
-# stale upstream release binaries (compiled with Go 1.21).
-# Source integrity is verified by Go's checksum database (sum.golang.org).
-RUN go install github.com/tomwright/dasel/v2/cmd/dasel@v2.8.1
-
 FROM alpine:3.21
 
 RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
@@ -17,8 +11,19 @@ RUN apk add --no-cache \
       tzdata && \
     update-ca-certificates
 
-# Install dasel for configuration parsing, built with a current Go toolchain.
-COPY --from=dasel-builder /go/bin/dasel /usr/local/bin/dasel
+# Install dasel for configuration parsing
+RUN case "$(apk --print-arch)" in \
+      x86_64)  arch=amd64 ;; \
+      aarch64) arch=arm64 ;; \
+      *) echo 'Unsupported architecture' && exit 1 ;; \
+    esac && \
+    curl -fL "https://github.com/TomWright/dasel/releases/download/v3.4.1/dasel_linux_${arch}.gz" | gzip -d > /usr/local/bin/dasel && \
+    case ${arch} in \
+      amd64) echo '3c947a8dcd88856a32c172081db091c38059394fb57a15fa43871f6d046427e1  /usr/local/bin/dasel' ;; \
+      arm64) echo 'a128c5554c53e6e4af880700adba1d212ce651db208da1592fb1cae0e959cbc6  /usr/local/bin/dasel' ;; \
+    esac | sha256sum -c - && \
+    chmod +x /usr/local/bin/dasel && \
+    dasel --version
 
 RUN addgroup -S -g 1000 influxdb && \
     adduser -S -G influxdb -u 1000 -h /home/influxdb -s /bin/sh influxdb && \
