@@ -230,7 +230,20 @@ function ensure_init_vars_set () {
 # the DB is already full set up.
 function cleanup_influxd () {
     log warn "cleaning bolt and engine files to prevent conflicts on retry" bolt_path "${BOLT_PATH}" engine_path "${ENGINE_PATH}"
-    rm -rf "${BOLT_PATH}" "${ENGINE_PATH}/"*
+
+    # Only remove the bolt path if it is set and not the filesystem root.
+    if [ -n "${BOLT_PATH}" ] && [ "${BOLT_PATH}" != "/" ]; then
+        rm -rf -- "${BOLT_PATH}"
+    else
+        log error "refusing to clean unsafe or empty bolt path" bolt_path "${BOLT_PATH}"
+    fi
+
+    # Only remove engine contents if ENGINE_PATH is set and not the filesystem root.
+    if [ -n "${ENGINE_PATH}" ] && [ "${ENGINE_PATH}" != "/" ]; then
+        rm -rf -- "${ENGINE_PATH}/"*
+    else
+        log error "refusing to clean unsafe or empty engine path" engine_path "${ENGINE_PATH}"
+    fi
 }
 
 # Upgrade V1 data into the V2 format using influxd upgrade.
