@@ -327,7 +327,7 @@ function setup_influxd () {
 # Get the IDs of the initial user/org/bucket created during setup, and export them into the env.
 # We do this to help with arbitrary user scripts, since many influx CLI commands only take IDs.
 function set_init_resource_ids () {
-    DOCKER_INFLUXDB_INIT_USER_ID="$(influx user list -n "${DOCKER_INFLUXDB_INIT_USER}" --hide-headers | cut -f 1)"
+    DOCKER_INFLUXDB_INIT_USER_ID="$(influx user list -n "${DOCKER_INFLUXDB_INIT_USERNAME}" --hide-headers | cut -f 1)"
     DOCKER_INFLUXDB_INIT_ORG_ID="$(influx org list -n "${DOCKER_INFLUXDB_INIT_ORG}" --hide-headers | cut -f 1)"
     DOCKER_INFLUXDB_INIT_BUCKET_ID="$(influx bucket list -n "${DOCKER_INFLUXDB_INIT_BUCKET}" --hide-headers | cut -f 1)"
     export DOCKER_INFLUXDB_INIT_USER_ID DOCKER_INFLUXDB_INIT_ORG_ID DOCKER_INFLUXDB_INIT_BUCKET_ID
