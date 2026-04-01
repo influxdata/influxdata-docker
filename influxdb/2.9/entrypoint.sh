@@ -198,7 +198,7 @@ function create_directories () {
     fi
 }
 
-# Read password and username from file to avoid unsecure env variables
+# Read password and username from file to avoid insecure env variables
 if [ -n "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}" ] && DOCKER_INFLUXDB_INIT_PASSWORD=$(cat "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}") || echo "DOCKER_INFLUXDB_INIT_PASSWORD_FILE defined, but file not existing, skipping."; fi
 if [ -n "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}" ] && DOCKER_INFLUXDB_INIT_USERNAME=$(cat "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}") || echo "DOCKER_INFLUXDB_INIT_USERNAME_FILE defined, but file not existing, skipping."; fi
 if [ -n "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ] && DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=$(cat "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}") || echo "DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE defined, but file not existing, skipping."; fi
