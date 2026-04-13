@@ -1,11 +1,11 @@
 FROM buildpack-deps:bookworm-curl
 
-ENV INFLUXDB_VERSION=1.12.3-c1.12.3
+ENV INFLUXDB_VERSION=1.12.4-c1.12.4
 # INFLUXDB_PR is for suffixes like -1
 ENV INFLUXDB_PR=
 ENV INFLUXDB_PV=${INFLUXDB_VERSION}${INFLUXDB_PR}
 RUN curl -fsSLO "https://dl.influxdata.com/enterprise/releases/influxdb-meta_${INFLUXDB_PV}_amd64.deb.asc" \
-         -fssLO "https://dl.influxdata.com/enterprise/releases/influxdb-meta_${INFLUXDB_PV}_amd64.deb" && \
+         -fsSLO "https://dl.influxdata.com/enterprise/releases/influxdb-meta_${INFLUXDB_PV}_amd64.deb" && \
     # Verify InfluxDB 1.X Enterprise \
     gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys \
         # InfluxData Package Signing Key <support@influxdata.com> \
