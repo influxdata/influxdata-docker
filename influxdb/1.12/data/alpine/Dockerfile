@@ -3,13 +3,13 @@ FROM alpine:3.21
 RUN apk add --no-cache tzdata bash ca-certificates && \
     update-ca-certificates
 
-ENV INFLUXDB_VERSION=1.12.3-c1.12.3
+ENV INFLUXDB_VERSION=1.12.4-c1.12.4
 # INFLUXDB_PR is for suffixes like -1
 ENV INFLUXDB_PR=
-ENV INFLUXDB_PV=${INFLUXDB_VERSION}
+ENV INFLUXDB_PV=${INFLUXDB_VERSION}${INFLUXDB_PR}
 RUN apk add --no-cache --virtual .build-deps curl gnupg tar && \
     curl -fsSLO "https://dl.influxdata.com/enterprise/releases/influxdb-data-${INFLUXDB_PV}_linux_amd64.tar.gz.asc" \
-         -fssLO "https://dl.influxdata.com/enterprise/releases/influxdb-data-${INFLUXDB_PV}_linux_amd64.tar.gz" && \
+         -fsSLO "https://dl.influxdata.com/enterprise/releases/influxdb-data-${INFLUXDB_PV}_linux_amd64.tar.gz" && \
     # Verify InfluxDB 1.X Enterprise \
     gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys \
         # InfluxData Package Signing Key <support@influxdata.com> \
