@@ -2,13 +2,13 @@
   "name": "telegraf",
   "maintainers": [
     "Sven Rebhan <srebhan@influxdata.com> (@srebhan)",
-    "Maya Strandboge <mstrandboge@influxdata.com> (@mstrandboge)",
-    "Sunil Kartikey <skartikey@influxdata.com> (@skartikey)"
+    "Sunil Kartikey <skartikey@influxdata.com> (@skartikey)",
+    "Jeffrey Smith <jsmith@influxdata.com> (@jeffreyssmith2nd)"
   ],
   "versions": [
-    "1.35",
     "1.36",
-    "1.37"
+    "1.37",
+    "1.38"
   ],
   "architectures": [
     "amd64",
