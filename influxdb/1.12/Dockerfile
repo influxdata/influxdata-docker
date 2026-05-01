@@ -3,7 +3,7 @@ FROM buildpack-deps:bookworm-curl
 RUN addgroup --system --gid 1500 influxdb && \
     adduser --system --uid 1500 --ingroup influxdb --home /var/lib/influxdb --shell /bin/false influxdb
 
-ENV INFLUXDB_VERSION=1.12.3
+ENV INFLUXDB_VERSION=1.12.4
 # INFLUXDB_PR is for suffixes like -1
 ENV INFLUXDB_PR=-1
 ENV INFLUXDB_PV=${INFLUXDB_VERSION}${INFLUXDB_PR}
