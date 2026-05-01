@@ -24,15 +24,13 @@ RUN case "$(dpkg --print-architecture)" in \
       arm64) echo 'a128c5554c53e6e4af880700adba1d212ce651db208da1592fb1cae0e959cbc6  /usr/local/bin/dasel' ;; \
     esac | sha256sum -c - && \
     chmod +x /usr/local/bin/dasel && \
-    dasel --version
+    dasel version
 
 RUN groupadd -r influxdb --gid=1000 && \
     useradd -r -g influxdb --uid=1000 --create-home --home-dir=/home/influxdb --shell=/bin/bash influxdb
 
 # Install the influxd server
 ENV INFLUXDB_VERSION=2.9.0
-ENV INFLUXDB_PR=-2
-ENV INFLUXDB_PV=${INFLUXDB_VERSION}${INFLUXDB_PR}
 RUN case "$(dpkg --print-architecture)" in \
       *amd64) arch=amd64 ;; \
       *arm64) arch=arm64 ;; \
@@ -42,14 +40,14 @@ RUN case "$(dpkg --print-architecture)" in \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
       # InfluxData Package Signing Key <support@influxdata.com>
       24C975CBA61A024EE1B631787C3D57159FC2F927 && \
-    curl -fLO "https://dl.influxdata.com/influxdb/releases/v${INFLUXDB_VERSION}/influxdb2-${INFLUXDB_PV}_linux_${arch}.tar.gz" \
-         -fLO "https://dl.influxdata.com/influxdb/releases/v${INFLUXDB_VERSION}/influxdb2-${INFLUXDB_PV}_linux_${arch}.tar.gz.asc" && \
-    gpg --batch --verify "influxdb2-${INFLUXDB_PV}_linux_${arch}.tar.gz.asc" \
-                         "influxdb2-${INFLUXDB_PV}_linux_${arch}.tar.gz" && \
-    tar xzf "influxdb2-${INFLUXDB_PV}_linux_${arch}.tar.gz" && \
-    cp "influxdb2-${INFLUXDB_VERSION}/usr/bin/influxd" /usr/local/bin/influxd && \
-    rm -rf "influxdb2-${INFLUXDB_PV}_linux_${arch}.tar.gz" \
-           "influxdb2-${INFLUXDB_PV}_linux_${arch}.tar.gz.asc" \
+    curl -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz" \
+         -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz.asc" && \
+    gpg --batch --verify "influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz.asc" \
+                         "influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz" && \
+    tar xzf "influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz" && \
+    cp "influxdb2-${INFLUXDB_VERSION}/influxd" /usr/local/bin/influxd && \
+    rm -rf "influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz" \
+           "influxdb2-${INFLUXDB_VERSION}_linux_${arch}.tar.gz.asc" \
            "influxdb2-${INFLUXDB_VERSION}" && \
     influxd version
 
