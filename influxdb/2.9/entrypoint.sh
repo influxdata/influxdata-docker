@@ -418,12 +418,9 @@ function init_influxd () {
     # TLS keys are set to empty here and also overridden via env vars when
     # launching influxd below, so explicit deletion is unnecessary.
     local -r init_config=/tmp/config.json
-    (
-      dasel -i "${influxd_config_format}" -o json \
-        | dasel -i json -o json --root 'get("http-bind-address") = "'"${init_bind_addr}"'"' \
-        | dasel -i json -o json --root 'get("tls-cert") = ""' \
-        | dasel -i json -o json --root 'get("tls-key") = ""'
-    ) <"${INFLUXD_CONFIG_PATH}" | tee "${init_config}"
+    dasel -i "${influxd_config_format}" -o json \
+      'merge($this, {"http-bind-address": "'"${init_bind_addr}"'", "tls-cert": "", "tls-key": ""})' \
+      <"${INFLUXD_CONFIG_PATH}" | tee "${init_config}"
 
     # Start influxd in the background.
     log info "booting influxd server in the background"
