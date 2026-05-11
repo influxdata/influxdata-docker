@@ -30,7 +30,7 @@ RUN groupadd -r influxdb --gid=1000 && \
     useradd -r -g influxdb --uid=1000 --create-home --home-dir=/home/influxdb --shell=/bin/bash influxdb
 
 # Install the influxd server
-ENV INFLUXDB_VERSION=2.9.0
+ENV INFLUXDB_VERSION=2.9.1
 RUN case "$(dpkg --print-architecture)" in \
       *amd64) arch=amd64 ;; \
       *arm64) arch=arm64 ;; \
