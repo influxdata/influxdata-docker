@@ -21,7 +21,7 @@ RUN set -ex && \
     mkdir -p /usr/src && \
     tar -C /usr/src -xzf chronograf-${CHRONOGRAF_VERSION}_linux_amd64.tar.gz && \
     rm -f /usr/src/chronograf-*/chronograf.conf && \
-    chmod +x /usr/src/chronograf-*/* && \
+    chmod +x /usr/src/chronograf-*/usr/bin/* && \
     cp -a /usr/src/chronograf-*/usr/bin/* /usr/bin && \
     gpgconf --kill all && \
     rm -rf *.tar.gz* /usr/src /root/.gnupg && \
