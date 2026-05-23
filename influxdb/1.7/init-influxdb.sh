@@ -22,7 +22,7 @@ fi
 if ( [ ! -z "$INIT_USERS" ] || [ ! -z "$INFLUXDB_DB" ] || [ "$(ls -A /docker-entrypoint-initdb.d 2> /dev/null)" ] ) && [ ! "$(ls -d "$META_DIR" 2>/dev/null)" ]; then
 
 	INIT_QUERY=""
-	CREATE_DB_QUERY="CREATE DATABASE $INFLUXDB_DB"
+	CREATE_DB_QUERY="CREATE DATABASE \"$INFLUXDB_DB\""
 
 	if [ ! -z "$INIT_USERS" ]; then
 
