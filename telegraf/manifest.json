@@ -22,6 +22,16 @@
         "amd64",
         "arm64v8"
       ]
+    },
+    {
+      "name": "distroless",
+      "versions": [
+        "1.39"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64v8"
+      ]
     }
   ]
 }
