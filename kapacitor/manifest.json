@@ -4,10 +4,9 @@
     "Jonathan A. Sternberg <jonathan@influxdata.com> (@jsternberg)",
     "j. Emrys Landivar <landivar@gmail.com> (@docmerlin)"
   ],
-  "versions": ["1.4", "1.5"],
+  "versions": ["1.7", "1.8"],
   "architectures": [
     "amd64",
-    "arm32v7",
     "arm64v8"
   ],
   "variants": [
