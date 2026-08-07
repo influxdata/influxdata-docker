@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     # install dependencies \
