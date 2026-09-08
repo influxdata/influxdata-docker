@@ -43,10 +43,6 @@ workflows:
           matrix:
             parameters:
               product:
-                - "influxdb/1.9/data"
-                - "influxdb/1.9/meta"
-                - "influxdb/1.10/data"
-                - "influxdb/1.10/meta"
                 - "influxdb/1.11/data"
                 - "influxdb/1.11/meta"
                 - "influxdb/1.12/data"

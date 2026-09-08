@@ -3,7 +3,7 @@ FROM alpine:3.23
 RUN apk add --no-cache tzdata bash ca-certificates && \
     update-ca-certificates
 
-ENV INFLUXDB_VERSION=1.13.0-c1.13.0
+ENV INFLUXDB_VERSION=1.13.1-c1.13.1
 # INFLUXDB_PR is for suffixes like -1
 ENV INFLUXDB_PR=
 ENV INFLUXDB_PV=${INFLUXDB_VERSION}${INFLUXDB_PR}
