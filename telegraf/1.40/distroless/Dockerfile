@@ -3,7 +3,7 @@
 # GPG-verifies the release and assembles the exact final image tree under
 # /rootfs; the scratch stage is a single COPY of it.
 
-ARG TELEGRAF_VERSION=1.39.1
+ARG TELEGRAF_VERSION=1.40.0
 
 FROM alpine:3.23 AS fetch
 ARG TELEGRAF_VERSION
