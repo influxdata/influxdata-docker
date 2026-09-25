@@ -170,8 +170,14 @@ function influxd::config::get()
     *.json)       config_format=json ;;
     *)            config_format=yaml ;;
   esac
-  dasel -i "${config_format}" 'get("'"${primary_key}"'")' < "${INFLUXD_CONFIG_PATH}" 2>/dev/null || \
+  # dasel v3 writes scalars in the input's syntax (YAML `""`, TOML `'/path'`)
+  # and has no plain-text writer, so emit JSON and strip the string quotes.
+  if value="$(dasel -i "${config_format}" -o json 'get("'"${primary_key}"'")' < "${INFLUXD_CONFIG_PATH}" 2>/dev/null)"; then
+    value="${value#\"}"
+    echo "${value%\"}"
+  else
     table::get "${primary_key}" "${COLUMN_DEFAULT}"
+  fi
 }
 
 function set_data_paths () {
