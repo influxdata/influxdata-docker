@@ -1,9 +1,10 @@
-FROM golang:1.9.2-stretch as builder
+FROM golang:1.15-alpine as builder
 COPY . /go/src/github.com/influxdata/influxdata-docker/dockerlib
-RUN set -xe && \
-    go get -d github.com/influxdata/influxdata-docker/dockerlib && \
+RUN set -xe; \
+    apk add --no-cache git; \
+    go get -d github.com/influxdata/influxdata-docker/dockerlib; \
     go install github.com/influxdata/influxdata-docker/dockerlib
 
-FROM buildpack-deps:stretch-scm
+FROM alpine
 COPY --from=builder /go/bin/dockerlib /usr/bin/dockerlib
 ENTRYPOINT ["/usr/bin/dockerlib"]
