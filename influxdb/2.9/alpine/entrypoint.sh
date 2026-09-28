@@ -170,8 +170,16 @@ function influxd::config::get()
     *.json)       config_format=json ;;
     *)            config_format=yaml ;;
   esac
-  dasel -i "${config_format}" 'get("'"${primary_key}"'")' < "${INFLUXD_CONFIG_PATH}" 2>/dev/null || \
+  # dasel v3 writes scalars in the input's syntax (YAML `""`, TOML `'/path'`)
+  # and has no plain-text writer, so emit JSON and strip the string quotes.
+  # `--config /dev/null`: dasel v3 resolves its default `~/dasel.yaml` via the
+  # passwd entry of the current uid, which fails for arbitrary `docker run -u` uids.
+  if value="$(dasel --config /dev/null -i "${config_format}" -o json 'get("'"${primary_key}"'")' < "${INFLUXD_CONFIG_PATH}" 2>/dev/null)"; then
+    value="${value#\"}"
+    echo "${value%\"}"
+  else
     table::get "${primary_key}" "${COLUMN_DEFAULT}"
+  fi
 }
 
 function set_data_paths () {
@@ -418,7 +426,7 @@ function init_influxd () {
     # TLS keys are set to empty here and also overridden via env vars when
     # launching influxd below, so explicit deletion is unnecessary.
     local -r init_config=/tmp/config.json
-    dasel -i "${influxd_config_format}" -o json \
+    dasel --config /dev/null -i "${influxd_config_format}" -o json \
       'merge($this, {"http-bind-address": "'"${init_bind_addr}"'", "tls-cert": "", "tls-key": ""})' \
       <"${INFLUXD_CONFIG_PATH}" | tee "${init_config}"
 

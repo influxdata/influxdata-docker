@@ -58,8 +58,10 @@ function wait_container_ready_at_url () {
     return 1
 }
 
+# InfluxDB 2.9+ stores tokens hashed, so `influx auth list` cannot return them.
+# Setup/upgrade writes the operator token to the active CLI config instead.
 function extract_token () {
-    docker exec -i ${1} influx auth list --skip-verify --user ${TEST_USER} --hide-headers | cut -f 3
+    docker exec -i ${1} influx config ls --json | jq -r '.[] | select(.active) | .token'
 }
 
 function join_array () {

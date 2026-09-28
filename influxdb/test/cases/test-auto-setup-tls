@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -eo pipefail
 
 declare -r SCRIPT_DIR=$(cd $(dirname $0) >/dev/null 2>&1 && pwd)
