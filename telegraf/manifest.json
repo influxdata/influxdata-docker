@@ -24,7 +24,7 @@
       ]
     },
     {
-      "name": "distroless",
+      "name": "scratch",
       "versions": [
         "1.40"
       ],
