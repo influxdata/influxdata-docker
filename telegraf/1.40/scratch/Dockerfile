@@ -65,7 +65,7 @@ FROM scratch
 ARG TELEGRAF_VERSION
 ENV TELEGRAF_VERSION=${TELEGRAF_VERSION}
 LABEL org.opencontainers.image.title="telegraf" \
-      org.opencontainers.image.description="Distroless Telegraf: static binary on scratch (no shell, no OS userland, non-root)" \
+      org.opencontainers.image.description="Telegraf without Linux distribution, only telegraf (no shell, no OS userland, non-root)" \
       org.opencontainers.image.version="${TELEGRAF_VERSION}" \
       org.opencontainers.image.source="https://github.com/influxdata/influxdata-docker" \
       org.opencontainers.image.base.name="scratch" \
