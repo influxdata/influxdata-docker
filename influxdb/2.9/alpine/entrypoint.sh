@@ -206,10 +206,25 @@ function create_directories () {
     fi
 }
 
-# Read password and username from file to avoid insecure env variables
-if [ -n "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}" ] && DOCKER_INFLUXDB_INIT_PASSWORD=$(cat "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}") || echo "DOCKER_INFLUXDB_INIT_PASSWORD_FILE defined, but file not existing, skipping."; fi
-if [ -n "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}" ] && DOCKER_INFLUXDB_INIT_USERNAME=$(cat "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}") || echo "DOCKER_INFLUXDB_INIT_USERNAME_FILE defined, but file not existing, skipping."; fi
-if [ -n "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ] && DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=$(cat "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}") || echo "DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE defined, but file not existing, skipping."; fi
+# Read init credentials from files (e.g. Docker secrets) to avoid insecure env variables.
+# Only called before setup/upgrade: after stepping down from root the files may not be
+# readable by the influxdb user, and the values are not needed to run influxd.
+function read_init_secret_files () {
+    local var file_var file
+    for var in DOCKER_INFLUXDB_INIT_PASSWORD DOCKER_INFLUXDB_INIT_USERNAME DOCKER_INFLUXDB_INIT_ADMIN_TOKEN; do
+        file_var="${var}_FILE"
+        file="${!file_var}"
+        if [ -z "${file}" ]; then
+            continue
+        elif [ ! -e "${file}" ]; then
+            log warn "file does not exist, skipping" "${file_var}" "${file}"
+        elif [ ! -r "${file}" ]; then
+            log warn "file is not readable, skipping" "${file_var}" "${file}"
+        else
+            printf -v "${var}" '%s' "$(< "${file}")"
+        fi
+    done
+}
 
 # List of env vars required to auto-run setup or upgrade processes.
 declare -ra REQUIRED_INIT_VARS=(
@@ -504,6 +519,7 @@ function main () {
     elif [ -z "${DOCKER_INFLUXDB_INIT_MODE}" ]; then
         log warn "boltdb not found at configured path, but DOCKER_INFLUXDB_INIT_MODE not specified, skipping setup wrapper" bolt_path "${BOLT_PATH}"
     else
+        read_init_secret_files
         init_influxd "${@}"
         # Set correct permission on volume directories again. This is necessary so that if the container was run as the
         # root user, the files from the automatic upgrade/initialization will be correctly set when stepping down to the
