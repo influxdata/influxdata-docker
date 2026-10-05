@@ -16,7 +16,7 @@ RUN groupadd --gid 1500 influxdb3 && \
              /usr/lib/influxdb3 \
              /plugins
 
-ENV INFLUXDB_VERSION=3.11.5
+ENV INFLUXDB_VERSION=3.11.6
 RUN case "$(dpkg --print-architecture)" in \
         amd64) ARCH=amd64 ;; \
         arm64) ARCH=arm64 ;; \
