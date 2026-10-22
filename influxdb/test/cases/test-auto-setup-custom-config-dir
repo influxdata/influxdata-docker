@@ -13,18 +13,20 @@ if ! docker run --rm influxdb:${tag} influxd print-config > ${config}/default-co
     exit 1
 fi
 
-# Rewrite data paths.
-sed -e 's#/var/lib/influxdb2#/home/influxdb/influxdb2#g' -e 's#:8086#:9000#g' ${config}/default-config.yml > ${config}/config.yml
+# Rewrite data paths, into a subdirectory of the mounted config volume.
+mkdir -p ${config}/custom
+sed -e 's#/var/lib/influxdb2#/home/influxdb/influxdb2#g' -e 's#:8086#:9000#g' ${config}/default-config.yml > ${config}/custom/config.yml
 
 # Point INFLUXD_CONFIG_PATH at the directory that holds config.yml, not at the file.
+# The volume stays at /etc/influxdb2 so setup can write the CLI configs there.
 declare -ra docker_run_influxd=(
     docker run -i -d
     --name=${container_name}
     -u $(id -u):influxdb
     -p 8086:9000
     -v ${data}:/home/influxdb/influxdb2
-    -v ${config}:/etc/influxdb2-custom
-    -e INFLUXD_CONFIG_PATH=/etc/influxdb2-custom
+    -v ${config}:/etc/influxdb2
+    -e INFLUXD_CONFIG_PATH=/etc/influxdb2/custom
     -e DOCKER_INFLUXDB_INIT_MODE=setup
     -e DOCKER_INFLUXDB_INIT_USERNAME=${TEST_USER}
     -e DOCKER_INFLUXDB_INIT_PASSWORD=${TEST_PASSWORD}
