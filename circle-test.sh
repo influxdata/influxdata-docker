@@ -32,10 +32,24 @@ tags=()
 
 # Gather directories with a Dockerfile and sanitize the path to remove leading
 # a leading ./ and multiple slashes into a single slash.
-dockerfiles=$(find "$dir" -name Dockerfile -print0 | xargs -0 -I{} dirname {} | grep -v dockerlib | sed 's@^./@@' | sed 's@//*@/@g')
+# Sort the images so "scratch" images are at the end of the list. This is
+# necessary because they reference "alpine" as a base image which has to be
+# build before.
+dockerfiles=$(find "$dir" -name Dockerfile -print0 | xargs -0 -I{} dirname {} | grep -v dockerlib | sed 's@^./@@' | sed 's@//*@/@g' | sort)
 for path in $dockerfiles; do
   # Generate a tag by replacing the first slash with a colon and all remaining slashes with a dash.
   tag=$(echo $path | sed 's@/@:@' | sed 's@/@-@g')
+  # Tag telegraf images with the exact version from the Dockerfile so we can
+  # reference the "alpine" image from the "scratch" one. Omit nightly builds as
+  # they do not provide an exact version in the Dockerfile.
+  if [[ "${path}" == telegraf/* && "${path}" != telegraf/nightly* ]]; then
+    version=$(sed -n -E 's@(ENV|ARG) TELEGRAF_VERSION[ =]([0-9]+\.[0-9]+\.[0-9]+)@\2@p; /(ENV|ARG) TELEGRAF_VERSION[ =]/q' "${path}/Dockerfile")
+    if [ -z "${version}" ]; then
+      echo "ERROR: Cannot extract version from ${path}"
+      exit 1
+    fi
+    tag=$(echo "${tag}" | sed -e "s@telegraf:.*\(-.*\)@telegraf:$version\1@g")
+  fi
   log_msg "Building docker image $tag (from $path)"
   if ! docker_build -t "$tag" "$path"; then
     failed_builds+=("$tag")
