@@ -4,7 +4,7 @@
 # files for a viable Golang environment under /rootfs for the final stage.
 # The final scratch stage can then use a single COPY of it avoiding layering.
 
-ARG TELEGRAF_VERSION=1.40.2
+ARG TELEGRAF_VERSION=1.40.3
 
 FROM telegraf:${TELEGRAF_VERSION}-alpine AS fetch
 
