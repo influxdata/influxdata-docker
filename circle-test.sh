@@ -43,7 +43,12 @@ for path in $dockerfiles; do
   # reference the "alpine" image from the "scratch" one. Omit nightly builds as
   # they do not provide an exact version in the Dockerfile.
   if [[ "${path}" == telegraf/* && "${path}" != telegraf/nightly* ]]; then
-    version=$(sed -n -E 's@(ENV|ARG) TELEGRAF_VERSION[ =]([0-9]+\.[0-9]+\.[0-9]+)@\2@p; /(ENV|ARG) TELEGRAF_VERSION[ =]/q' "${path}/Dockerfile")
+    # Extract version from the environment variable. This fails on scratch
+    # images containing the version in the first FROM line.
+    version=$(sed -n -E 's@ENV TELEGRAF_VERSION[ =]([0-9]+\.[0-9]+\.[0-9]+)@\1@p; /ENV TELEGRAF_VERSION[ =]/q' "${path}/Dockerfile")
+    if [ -z "${version}" ]; then
+      version=$(sed -n -E 's@FROM telegraf:([0-9]+\.[0-9]+\.[0-9]+)-alpine AS fetch@\1@p; /FROM telegraf:/q' "${path}/Dockerfile")
+    fi
     if [ -z "${version}" ]; then
       echo "ERROR: Cannot extract version from ${path}"
       exit 1
