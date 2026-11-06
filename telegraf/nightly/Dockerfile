@@ -1,7 +1,7 @@
 FROM buildpack-deps:bookworm-curl
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends iputils-ping snmp procps lm-sensors libcap2-bin tini && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends iputils-ping snmp procps lm-sensors libcap2-bin tini libbrotli1 && \
     rm -rf /var/lib/apt/lists/*
 
 ENV TELEGRAF_VERSION nightly
