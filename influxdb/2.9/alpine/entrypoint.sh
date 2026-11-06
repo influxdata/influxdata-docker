@@ -74,13 +74,26 @@ declare -ra CONFIG_NAMES=(config.json config.toml config.yaml config.yml)
 # Search for a V2 config file, and export its path into the env for influxd to use.
 function set_config_path () {
     local config_path=/etc/defaults/influxdb2/config.yml
+    local config_dir="${CONFIG_VOLUME}"
 
     if [ -n "$INFLUXD_CONFIG_PATH" ]; then
-        config_path="${INFLUXD_CONFIG_PATH}"
-    else
+        # Match influxd: a path without a config file extension is a directory
+        # to search for one of the standard config names.
+        case "${INFLUXD_CONFIG_PATH,,}" in
+            *.json|*.toml|*.yaml|*.yml)
+                config_path="${INFLUXD_CONFIG_PATH}"
+                config_dir=
+                ;;
+            *)
+                config_dir="${INFLUXD_CONFIG_PATH}"
+                ;;
+        esac
+    fi
+
+    if [ -n "${config_dir}" ]; then
         for name in "${CONFIG_NAMES[@]}"; do
-            if [ -f "${CONFIG_VOLUME}/${name}" ]; then
-                config_path="${CONFIG_VOLUME}/${name}"
+            if [ -f "${config_dir}/${name}" ]; then
+                config_path="${config_dir}/${name}"
                 break
             fi
         done
