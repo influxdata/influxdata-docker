@@ -53,7 +53,7 @@ RUN case "$(apk --print-arch)" in \
     influxd version
 
 # Install the influx CLI
-ENV INFLUX_CLI_VERSION=2.8.0
+ENV INFLUX_CLI_VERSION=2.9.1
 RUN case "$(apk --print-arch)" in \
       x86_64)  arch=amd64 ;; \
       aarch64) arch=arm64 ;; \

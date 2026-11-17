@@ -52,7 +52,7 @@ RUN case "$(dpkg --print-architecture)" in \
     influxd version
 
 # Install the influx CLI
-ENV INFLUX_CLI_VERSION=2.8.0
+ENV INFLUX_CLI_VERSION=2.9.1
 RUN case "$(dpkg --print-architecture)" in \
       *amd64) arch=amd64 ;; \
       *arm64) arch=arm64 ;; \
